@@ -1,0 +1,49 @@
+@import "tailwindcss/preflight";
+
+:root {
+  /* Default to dark theme values */
+  --background: #0a0a0a; 
+  --foreground: #ededed;
+
+  /* Define secondary color */
+  --secondary: #A0E8AF; /* Example Mint color */
+  --secondary-foreground: #171717; /* Text color for on top of mint */
+}
+
+/* Optional: Define light theme variables if needed */
+.light {
+  --background: #ffffff;
+  --foreground: #171717;
+  --secondary: #A0E8AF; 
+  --secondary-foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-exo2);
+  /* Add secondary to @theme if needed for specific components */
+}
+
+/* Remove the prefers-color-scheme media query as we are defaulting to dark */
+/* 
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+*/
+
+@tailwind utilities;
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
+
+.neon-glow {
+  box-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
+}
+
