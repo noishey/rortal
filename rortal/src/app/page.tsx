@@ -1,10 +1,14 @@
 "use client"
 
 import Image from 'next/image';  // Import Image from next/image
+import { useState } from 'react';
 import Sliders from "./components/Sliders";
 import PreviewBox from "./components/PreviewBox";
+import MintButton from "@/app/components/MintButton";
+import MintedNFT from "./components/MintedNFT";
 
 export default function Home() {
+  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
   return (
     <main className="grid grid-cols-1 grid-rows-5 md:grid-cols-2 md:grid-rows-3 min-h-screen w-screen bg-background text-foreground">
       
@@ -14,7 +18,7 @@ export default function Home() {
           {/* Left text */}
           <div>
             <p className="text-6xl font-bold">((( r )))</p>
-            <p className="text-lg">"leave a mark"</p>
+            <p className="text-lg">&ldquo;leave a mark&rdquo;</p>
           </div>
 
           {/* Right image */}
@@ -34,14 +38,18 @@ export default function Home() {
       <div className="border border-secondary flex flex-col items-center justify-start p-4 overflow-y-auto h-screen md:h-full">
         {/* Viewport 2 content */}
         <Sliders />
-        <PreviewBox />
+        <PreviewBox imageSrc={null} isLoading={false} />
       </div>
 
       {/* Viewport 3 */}
       <div className="border border-secondary flex flex-col items-center justify-start p-4 overflow-y-auto h-screen md:h-full">
         <div className="flex flex-col gap-4 items-center">
           <button className="bg-primary text-foreground px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-colors">
-            Mint NFT
+          {!mintedTokenId ? (
+            <MintButton onMintSuccess={setMintedTokenId} />
+          ) : (
+            <MintedNFT tokenId={mintedTokenId} />
+          )}
           </button>
         </div>
       </div>
