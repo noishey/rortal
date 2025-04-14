@@ -5,7 +5,7 @@ import BrowserMintNFT from "@/app/abi/BrowserMintNFT.json";
 
 declare global {
   interface Window {
-    ethereum: ethers.providers.ExternalProvider;
+    ethereum: ethers.Eip1193Provider;
   }
 }
 
@@ -14,26 +14,26 @@ interface MintButtonProps {
 }
 
 export default function MintButton({ onMintSuccess }: MintButtonProps) {
-  const [minting, setMinting] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const mintNFT = async () => {
-    setMinting(true);
+  const handleMint = async () => {
+    setIsMinting(true);
     setError(null);
-    
+
     if (!window.ethereum) {
       setError("Please install MetaMask");
-      setMinting(false);
+      setIsMinting(false);
       return;
     }
 
     try {
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const provider = new ethers.BrowserProvider(window.ethereum);
       const network = await provider.getNetwork();
       
       if (network.chainId !== 11155111) { // Sepolia
         setError("Please switch to Sepolia network");
-        setMinting(false);
+        setIsMinting(false);
         return;
       }
 
@@ -59,22 +59,44 @@ export default function MintButton({ onMintSuccess }: MintButtonProps) {
       onMintSuccess(tokenId);
     } catch (err) {
       console.error("Minting error:", err);
-      setError(err instanceof Error ? err.message : "Minting failed");
+      setError(err instanceof Error ? err.message : "Failed to mint NFT");
     } finally {
-      setMinting(false);
+      setIsMinting(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center gap-2">
+    <div className="flex flex-col items-center gap-6">
       <button
-        onClick={mintNFT}
-        disabled={minting}
-        className="p-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400"
+        onClick={handleMint}
+        disabled={isMinting}
+        className="p-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
-        {minting ? "Minting..." : "Mint NFT"}
+        {isMinting ? (
+          <>
+            <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Minting...
+          </>
+        ) : (
+          <>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              <path d="M12 8v8"/>
+              <path d="M8 12h8"/>
+            </svg>
+            Mint NFT
+          </>
+        )}
       </button>
-      {error && <p className="text-red-500 text-sm">{error}</p>}
+
+      {error && (
+        <div className="text-red-500 text-sm">
+          {error}
+        </div>
+      )}
     </div>
   );
 }

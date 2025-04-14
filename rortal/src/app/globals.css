@@ -1,0 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 240 5.9% 10%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 240 5.9% 10%;
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 240 10% 3.9%;
+    --foreground: 0 0% 98%;
+    --card: 240 10% 3.9%;
+    --card-foreground: 0 0% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 0 0% 98%;
+    --primary-foreground: 240 5.9% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 240 4.9% 83.9%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Custom animations */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Custom styles */
+.animate-fade-in {
+  animation: fadeIn 1s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Audio player styles */
+.audio-player {
+  @apply fixed bottom-4 right-4 z-50;
+}
+
+/* Theme toggle styles */
+.theme-toggle {
+  @apply fixed top-4 right-4 p-2 rounded-full bg-secondary/20 hover:bg-secondary/30 transition-colors z-50;
+}
+
+/* Viewport styles */
+.viewport {
+  @apply w-screen h-screen flex items-center justify-center p-8 snap-start opacity-0 transition-opacity duration-1000;
+}
+
+/* Mint button styles */
+.mint-button {
+  @apply p-4 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors;
+}
+
+/* Stable Diffusion styles */
+.stable-diffusion {
+  @apply flex flex-row gap-12 w-full h-full;
+}
+
+.word-button {
+  @apply p-4 rounded-lg font-medium transition-all duration-300 transform hover:scale-110 hover:shadow-lg;
+}
+
+.word-button-selected {
+  @apply bg-primary text-primary-foreground animate-pulse;
+}
+
+.word-button-unselected {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+}
+
+.generate-button {
+  @apply bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+/* Social media styles */
+.social-media {
+  @apply flex flex-col items-center gap-6;
+}
+
+.social-row {
+  @apply flex gap-4;
+}
+
+.social-button {
+  @apply p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300;
+}
+
+/* Buy me a coffee styles */
+.buy-me-coffee {
+  @apply flex flex-col items-center gap-4;
+}
+
+.coffee-button {
+  @apply p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300;
+} 
