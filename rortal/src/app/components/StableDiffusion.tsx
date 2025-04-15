@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import FloatingWords from './FloatingWords';
+import { uploadToIPFS } from '@/utils/ipfs';
 
 const WORDS = [
   "vibe", "noise", "liquid", "flow", "energy", "wave", "pulse", "glow", "melt", "swirl"
@@ -13,7 +14,9 @@ const BASE_PROMPT = "abstract gradient, smooth color transitions, low quality, p
 export default function StableDiffusion() {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [ipfsUrl, setIpfsUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const toggleWord = (word: string) => {
@@ -29,6 +32,7 @@ export default function StableDiffusion() {
     
     setIsGenerating(true);
     setError(null);
+    setIpfsUrl(null);
 
     try {
       const response = await fetch('/api/generate', {
@@ -52,10 +56,16 @@ export default function StableDiffusion() {
 
       const data = await response.json();
       setGeneratedImage(data.image);
+
+      // Upload to IPFS
+      setIsUploading(true);
+      const ipfsUrl = await uploadToIPFS(data.image);
+      setIpfsUrl(ipfsUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate image');
     } finally {
       setIsGenerating(false);
+      setIsUploading(false);
     }
   };
 
@@ -74,36 +84,39 @@ export default function StableDiffusion() {
         <button
           onClick={handleGenerate}
           disabled={isGenerating || selectedWords.length === 0}
-          className="mt-8 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-8 bg-primary text-primary-foreground w-[48px] h-[48px] rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
         >
-          {isGenerating ? (
-            <span className="flex items-center gap-2">
-              <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Generating...
-            </span>
+          {isGenerating || isUploading ? (
+            <div className="loading-circle" />
           ) : (
-            'Generate'
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20.71 5.63l-2.34 2.34a2.12 2.12 0 0 0 0 3l1.83 1.83a2.12 2.12 0 0 1 0 3l-7.17 7.17a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 0-3 0l-2.34 2.34a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 1 0-3l7.17-7.17a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 0 3 0l2.34-2.34a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 1 0 3z"/>
+            </svg>
           )}
         </button>
       </div>
 
       {/* Right side - Image preview */}
-      <div className="w-1/2 flex items-center justify-center min-h-[512px]">
+      <div className="w-1/2 flex flex-col items-center justify-center min-h-[512px]">
         {generatedImage ? (
-          <div className="relative w-full h-full">
-            <Image
-              src={generatedImage}
-              alt="Generated abstract gradient"
-              fill
-              className="object-contain"
-            />
-          </div>
+          <>
+            <div className="relative w-full h-full">
+              <Image
+                src={generatedImage}
+                alt="Generated abstract gradient"
+                fill
+                className="object-contain"
+              />
+            </div>
+            {ipfsUrl && (
+              <div className="mt-4 text-sm text-muted-foreground break-all">
+                IPFS: {ipfsUrl}
+              </div>
+            )}
+          </>
         ) : (
           <div className="w-full h-full flex items-center justify-center bg-secondary/20 rounded-lg">
-            <p className="text-secondary-foreground/50">Select words and generate</p>
+            <p className="text-secondary-foreground/50">Select words and paint</p>
           </div>
         )}
       </div>

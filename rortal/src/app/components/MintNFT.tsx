@@ -23,7 +23,7 @@ export default function MintNFT({ imageUrl }: { imageUrl: string | null }) {
 
     try {
       // 1. Upload to IPFS using Web3.Storage
-      const client = new Web3Storage({ token: process.env.NEXT_PUBLIC_WEB3_STORAGE_TOKEN! });
+      const client = new Web3Storage({ token: process.env.WEB3_STORAGE_TOKEN! });
       
       // Convert base64 to blob
       const base64Data = imageUrl.split(',')[1];
@@ -43,7 +43,7 @@ export default function MintNFT({ imageUrl }: { imageUrl: string | null }) {
       const tokenURI = `ipfs://${cid}/metadata.json`;
 
       // 2. Mint NFT on Sepolia
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = await provider.getSigner();
       const contract = new ethers.Contract(NFT_CONTRACT_ADDRESS!, NFT_ABI, signer);
 
@@ -53,7 +53,7 @@ export default function MintNFT({ imageUrl }: { imageUrl: string | null }) {
       // Get the token ID
       const receipt = await provider.getTransactionReceipt(tx.hash);
       const event = receipt.logs[0];
-      const tokenId = ethers.toNumber(event.topics[3]);
+      const tokenId = parseInt(event.topics[3], 16);
       
       setMintedTokenId(tokenId.toString());
     } catch (err) {

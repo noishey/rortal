@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Exo_2, Montserrat } from "next/font/google";
 import "./styles/globals.css";
+import { Providers } from "./providers";
 
 const exo2 = Exo_2({
   variable: "--font-exo2",
@@ -40,7 +41,9 @@ export default function RootLayout({
       <body
         className={`${exo2.variable} ${montserrat.variable} antialiased bg-background text-foreground min-h-screen`}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );
