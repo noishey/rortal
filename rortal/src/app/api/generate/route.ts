@@ -5,10 +5,31 @@ const STABLE_HORDE_API_URL = 'https://stablehorde.net/api/v2/generate/async';
 
 export async function POST(request: Request) {
   try {
-    const { prompt, negative_prompt, steps, cfg_scale, width, height } = await request.json();
+    const { prompt, negative_prompt, steps, cfg_scale, width, height, sampler_name } = await request.json();
 
     if (!STABLE_HORDE_API_KEY) {
       return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+    }
+
+    // Simplified parameters that match Stable Horde's API exactly
+    const params = {
+      steps: Math.min(steps || 10, 10),
+      cfg_scale: Math.min(cfg_scale || 5.0, 5.0),
+      width: Math.min(width || 128, 128),
+      height: Math.min(height || 128, 128),
+      sampler_name: 'k_euler_a',  // Force using k_euler_a to ensure compatibility
+      n: 1,
+    };
+
+    // Validate sampler name
+    const validSamplers = [
+      'k_heun', 'k_lms', 'k_dpm_2_a', 'k_dpm_2', 'k_dpm_adaptive',
+      'k_dpmpp_2m', 'DDIM', 'dpmsolver', 'k_euler_a', 'lcm',
+      'k_euler', 'k_dpmpp_sde', 'k_dpm_fast', 'k_dpmpp_2s_a'
+    ];
+
+    if (sampler_name && !validSamplers.includes(sampler_name)) {
+      throw new Error(`Invalid sampler name. Must be one of: ${validSamplers.join(', ')}`);
     }
 
     const response = await fetch(STABLE_HORDE_API_URL, {
@@ -20,28 +41,29 @@ export async function POST(request: Request) {
       body: JSON.stringify({
         prompt: prompt,
         negative_prompt: negative_prompt,
-        params: {
-          steps: steps || 30,
-          cfg_scale: cfg_scale || 7.5,
-          width: width || 512,
-          height: height || 512,
-          sampler_name: 'k_euler',
-          n: 1,
-        },
+        params: params,
         models: ['stable_diffusion'],
+        nsfw: false,
+        censor_nsfw: false,
+        trusted_workers: true,
+        slow_workers: false,
       }),
     });
 
     if (!response.ok) {
       const errorData = await response.json();
+      console.error('Stable Horde API Error:', errorData);
       throw new Error(errorData.message || 'Failed to generate image');
     }
 
     const data = await response.json();
     const generationId = data.id;
 
-    // Poll for generation status
+    // Poll for generation status with shorter timeout
+    let attempts = 0;
+    const maxAttempts = 15;
     let status;
+
     do {
       const statusResponse = await fetch(`https://stablehorde.net/api/v2/generate/check/${generationId}`, {
         headers: {
@@ -59,6 +81,11 @@ export async function POST(request: Request) {
         throw new Error('Generation failed');
       }
       
+      if (attempts >= maxAttempts) {
+        throw new Error('Generation timed out');
+      }
+      
+      attempts++;
       await new Promise(resolve => setTimeout(resolve, 1000));
     } while (!status.done);
 

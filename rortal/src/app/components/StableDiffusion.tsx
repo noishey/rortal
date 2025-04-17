@@ -18,6 +18,7 @@ export default function StableDiffusion() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [imageBlob, setImageBlob] = useState<Blob | null>(null);
 
   const toggleWord = (word: string) => {
     setSelectedWords(prev => 
@@ -33,6 +34,7 @@ export default function StableDiffusion() {
     setIsGenerating(true);
     setError(null);
     setIpfsUrl(null);
+    setImageBlob(null);
 
     try {
       const response = await fetch('/api/generate', {
@@ -43,10 +45,14 @@ export default function StableDiffusion() {
         body: JSON.stringify({
           prompt: `${BASE_PROMPT}, ${selectedWords.join(', ')}`,
           negative_prompt: "text, words, letters, low quality, blurry, distorted",
-          steps: 30,
-          cfg_scale: 7.5,
-          width: 512,
-          height: 512,
+          steps: 10,
+          cfg_scale: 5.0,
+          width: 128,
+          height: 128,
+          sampler_name: "k_euler_a",
+          n_iter: 1,
+          seed: -1,
+          batch_size: 1,
         }),
       });
 
@@ -57,14 +63,34 @@ export default function StableDiffusion() {
       const data = await response.json();
       setGeneratedImage(data.image);
 
-      // Upload to IPFS
-      setIsUploading(true);
-      const ipfsUrl = await uploadToIPFS(data.image);
-      setIpfsUrl(ipfsUrl);
+      // Fetch the image as blob and store it
+      const imageResponse = await fetch(data.image);
+      const blob = await imageResponse.blob();
+      setImageBlob(blob);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to generate image');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleUploadToIPFS = async () => {
+    if (!imageBlob) return;
+
+    setIsUploading(true);
+    setError(null);
+
+    try {
+      // Create a File object from the blob
+      const file = new File([imageBlob], 'generated-image.png', { type: 'image/png' });
+      
+      // Upload to IPFS
+      const ipfsUrl = await uploadToIPFS(file);
+      setIpfsUrl(ipfsUrl);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload to IPFS');
+    } finally {
       setIsUploading(false);
     }
   };
@@ -81,19 +107,39 @@ export default function StableDiffusion() {
           />
         </div>
         
-        <button
-          onClick={handleGenerate}
-          disabled={isGenerating || selectedWords.length === 0}
-          className="mt-8 bg-primary text-primary-foreground w-[48px] h-[48px] rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
-        >
-          {isGenerating || isUploading ? (
-            <div className="loading-circle" />
-          ) : (
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.71 5.63l-2.34 2.34a2.12 2.12 0 0 0 0 3l1.83 1.83a2.12 2.12 0 0 1 0 3l-7.17 7.17a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 0-3 0l-2.34 2.34a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 1 0-3l7.17-7.17a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 0 3 0l2.34-2.34a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 1 0 3z"/>
-            </svg>
+        <div className="flex gap-4 mt-8">
+          <button
+            onClick={handleGenerate}
+            disabled={isGenerating || selectedWords.length === 0}
+            className="bg-primary text-primary-foreground w-[48px] h-[48px] rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+          >
+            {isGenerating ? (
+              <div className="loading-circle" />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M20.71 5.63l-2.34 2.34a2.12 2.12 0 0 0 0 3l1.83 1.83a2.12 2.12 0 0 1 0 3l-7.17 7.17a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 0-3 0l-2.34 2.34a2.12 2.12 0 0 1-3 0l-1.83-1.83a2.12 2.12 0 0 1 0-3l7.17-7.17a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 0 3 0l2.34-2.34a2.12 2.12 0 0 1 3 0l1.83 1.83a2.12 2.12 0 0 1 0 3z"/>
+              </svg>
+            )}
+          </button>
+
+          {generatedImage && !ipfsUrl && (
+            <button
+              onClick={handleUploadToIPFS}
+              disabled={isUploading}
+              className="bg-secondary text-secondary-foreground w-[48px] h-[48px] rounded-lg font-medium hover:bg-opacity-90 transition-all duration-300 transform hover:scale-105 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+            >
+              {isUploading ? (
+                <div className="loading-circle" />
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="17 8 12 3 7 8"/>
+                  <line x1="12" y1="3" x2="12" y2="15"/>
+                </svg>
+              )}
+            </button>
           )}
-        </button>
+        </div>
       </div>
 
       {/* Right side - Image preview */}

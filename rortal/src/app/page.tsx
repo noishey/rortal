@@ -7,23 +7,15 @@ import MintedNFT from "./components/MintedNFT";
 import AudioPlayer from "./components/AudioPlayer";
 import StableDiffusion from "./components/StableDiffusion";
 import MintNFT from './components/MintNFT';
+import { useTheme } from 'next-themes';
 
 export default function Home() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const { theme, setTheme } = useTheme();
   const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
   const viewportRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [currentViewport, setCurrentViewport] = useState(0);
 
   useEffect(() => {
-    // Set initial theme
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      document.documentElement.classList.add(savedTheme);
-    } else {
-      document.documentElement.classList.add('light');
-    }
-    
     // Add smooth scrolling behavior
     document.documentElement.style.scrollBehavior = 'smooth';
     
@@ -70,24 +62,13 @@ export default function Home() {
     };
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    
-    // Remove all theme classes
-    document.documentElement.classList.remove('light', 'dark');
-    // Add the new theme class
-    document.documentElement.classList.add(newTheme);
-  };
-
   return (
     <main className="flex flex-row w-[500vw] h-screen bg-background text-foreground overflow-x-hidden">
       <AudioPlayer />
       
       {/* Theme Switcher */}
       <button
-        onClick={toggleTheme}
+        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
         className="fixed top-4 right-4 p-2 rounded-full bg-secondary/20 hover:bg-secondary/30 transition-colors z-50"
         aria-label="Toggle theme"
       >

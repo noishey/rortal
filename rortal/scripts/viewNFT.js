@@ -1,10 +1,65 @@
 import { ethers } from 'ethers';
 import fetch from 'node-fetch';
 
-// ERC721 interface for tokenURI
-const ERC721_ABI = [
-    "function tokenURI(uint256 tokenId) view returns (string)",
-    "function ownerOf(uint256 tokenId) view returns (address)"
+// Contract ABI
+const CONTRACT_ABI = [
+    {
+        "inputs": [
+            {
+                "internalType": "string",
+                "name": "tokenURI",
+                "type": "string"
+            }
+        ],
+        "name": "mintNFT",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "tokenURI",
+        "outputs": [
+            {
+                "internalType": "string",
+                "name": "",
+                "type": "string"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "tokenId",
+                "type": "uint256"
+            }
+        ],
+        "name": "ownerOf",
+        "outputs": [
+            {
+                "internalType": "address",
+                "name": "",
+                "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    }
 ];
 
 async function viewNFT(tokenId) {
@@ -15,8 +70,8 @@ async function viewNFT(tokenId) {
         // Contract address
         const contractAddress = '0xd9Aa3fAe83B41f4F9835fB7ab7d087f0c91419ED';
         
-        // Create contract instance with minimal ABI
-        const contract = new ethers.Contract(contractAddress, ERC721_ABI, provider);
+        // Create contract instance
+        const contract = new ethers.Contract(contractAddress, CONTRACT_ABI, provider);
 
         console.log('\nViewing Link:');
         console.log('Polygon Amoy Explorer:', `https://www.oklink.com/amoy/token/${contractAddress}/token/${tokenId}`);

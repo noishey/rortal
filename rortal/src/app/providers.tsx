@@ -4,6 +4,7 @@ import { WagmiConfig, createConfig } from 'wagmi';
 import { polygonAmoy } from 'wagmi/chains';
 import { publicProvider } from 'wagmi/providers/public';
 import { InjectedConnector } from 'wagmi/connectors/injected';
+import { ThemeProvider } from 'next-themes';
 
 const config = createConfig({
   chains: [polygonAmoy],
@@ -22,5 +23,11 @@ const config = createConfig({
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  return <WagmiConfig config={config}>{children}</WagmiConfig>;
+  return (
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <WagmiConfig config={config}>
+        {children}
+      </WagmiConfig>
+    </ThemeProvider>
+  );
 } 
