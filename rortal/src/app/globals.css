@@ -55,6 +55,8 @@
   }
   body {
     @apply bg-background text-foreground;
+    padding-bottom: 10px;
+    overflow-x: auto;
   }
 }
 
@@ -161,4 +163,37 @@
 
 .coffee-button {
   @apply p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300;
+}
+
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  height: 10px;
+  width: 10px;
+  background: rgba(0, 0, 0, 0.1);
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--primary));
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--primary)/0.8);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--secondary)/0.3);
+  -webkit-border-radius: 10px;
+  border-radius: 10px;
+}
+
+/* Firefox scrollbar styles */
+html {
+  scrollbar-color: hsl(var(--primary)) hsl(var(--secondary)/0.3);
+  scrollbar-width: thin;
 } 

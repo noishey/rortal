@@ -6,6 +6,7 @@ import MintButton from "@/app/components/MintButton";
 import MintedNFT from "./components/MintedNFT";
 import AudioPlayer from "./components/AudioPlayer";
 import StableDiffusion from "./components/StableDiffusion";
+import ScrollSound from "./components/ScrollSound";
 import MintNFT from './components/MintNFT';
 import { useTheme } from 'next-themes';
 
@@ -14,6 +15,12 @@ export default function Home() {
   const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
   const viewportRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [currentViewport, setCurrentViewport] = useState(0);
+  const [mounted, setMounted] = useState(false);
+
+  // After mounting, we can render theme-dependent elements
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Add smooth scrolling behavior
@@ -63,8 +70,9 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="flex flex-row w-[500vw] h-screen bg-background text-foreground overflow-x-hidden">
+    <main className="flex flex-row w-[500vw] h-[calc(100vh-10px)] pb-3 bg-background text-foreground overflow-x-auto">
       <AudioPlayer />
+      <ScrollSound />
       
       {/* Theme Switcher */}
       <button
@@ -72,7 +80,7 @@ export default function Home() {
         className="fixed top-4 right-4 p-2 rounded-full bg-secondary/20 hover:bg-secondary/30 transition-colors z-50"
         aria-label="Toggle theme"
       >
-        {theme === 'dark' ? (
+        {mounted && (theme === 'dark' ? (
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
           </svg>
@@ -88,7 +96,7 @@ export default function Home() {
             <path d="m6.34 17.66-1.41 1.41"/>
             <path d="m19.07 4.93-1.41 1.41"/>
           </svg>
-        )}
+        ))}
       </button>
       
       {/* Viewport 1 */}
@@ -114,7 +122,7 @@ export default function Home() {
               alt="Your Image"
               width={400}
               height={400}
-              objectFit="cover"
+              className="object-cover"
             />
           </div>
         </div>

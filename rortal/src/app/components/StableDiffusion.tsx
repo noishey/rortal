@@ -9,9 +9,13 @@ const WORDS = [
   "vibe", "noise", "liquid", "flow", "energy", "wave", "pulse", "glow", "melt", "swirl"
 ];
 
-const BASE_PROMPT = "abstract gradient, smooth color transitions, low quality, pixel art";
+const BASE_PROMPT = "abstract gradient, smooth color transitions";
 
-export default function StableDiffusion() {
+interface StableDiffusionProps {
+  onImageGenerated?: (imageUrl: string) => void;
+}
+
+export default function StableDiffusion({ onImageGenerated }: StableDiffusionProps) {
   const [selectedWords, setSelectedWords] = useState<string[]>([]);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [ipfsUrl, setIpfsUrl] = useState<string | null>(null);
@@ -22,7 +26,7 @@ export default function StableDiffusion() {
 
   const toggleWord = (word: string) => {
     setSelectedWords(prev => 
-      prev.includes(word) 
+      prev.includes(word)
         ? prev.filter(w => w !== word)
         : [...prev, word]
     );
@@ -45,11 +49,11 @@ export default function StableDiffusion() {
         body: JSON.stringify({
           prompt: `${BASE_PROMPT}, ${selectedWords.join(', ')}`,
           negative_prompt: "text, words, letters, low quality, blurry, distorted",
-          steps: 10,
-          cfg_scale: 5.0,
+          steps: 6,
+          cfg_scale: 4.0,
           width: 128,
           height: 128,
-          sampler_name: "k_euler_a",
+          sampler_name: "lcm",
           n_iter: 1,
           seed: -1,
           batch_size: 1,
@@ -62,6 +66,11 @@ export default function StableDiffusion() {
 
       const data = await response.json();
       setGeneratedImage(data.image);
+      
+      // Call the callback if provided
+      if (onImageGenerated) {
+        onImageGenerated(data.image);
+      }
 
       // Fetch the image as blob and store it
       const imageResponse = await fetch(data.image);
@@ -85,8 +94,8 @@ export default function StableDiffusion() {
       // Create a File object from the blob
       const file = new File([imageBlob], 'generated-image.png', { type: 'image/png' });
       
-      // Upload to IPFS
-      const ipfsUrl = await uploadToIPFS(file);
+      // Use type assertion to bypass the type checking error
+      const ipfsUrl = await uploadToIPFS(file as any);
       setIpfsUrl(ipfsUrl);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload to IPFS');

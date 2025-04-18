@@ -5,6 +5,7 @@ import { useAccount, useConnect, useDisconnect } from 'wagmi';
 import { InjectedConnector } from 'wagmi/connectors/injected';
 import BrowserMintNFT from "@/app/abi/BrowserMintNFT.json";
 import { polygonAmoy } from 'wagmi/chains';
+import NFTViewer from './NFTViewer';
 
 declare global {
   interface Window {
@@ -13,19 +14,22 @@ declare global {
 }
 
 interface MintButtonProps {
-  onMintSuccess: (tokenId: string) => void;
+  onSuccessTokenId?: string;
+  setTokenId?: (tokenId: string) => void;
 }
 
 const POLYGON_AMOY_CHAIN_ID = 80002;
 const CONTRACT_ADDRESS = "0xd9Aa3fAe83B41f4F9835fB7ab7d087f0c91419ED"; // Contract on Polygon Amoy
 
-export default function MintButton({ onMintSuccess }: MintButtonProps) {
+export default function MintButton({ onSuccessTokenId, setTokenId }: MintButtonProps) {
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
   const [isMinting, setIsMinting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ipfsHash, setIpfsHash] = useState<string | null>(null);
+  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
 
   const switchToPolygonAmoy = async (provider: ethers.providers.Web3Provider) => {
     try {
@@ -70,166 +74,236 @@ export default function MintButton({ onMintSuccess }: MintButtonProps) {
     setError(null);
 
     try {
-      // Step 1: Generate image with Stable Horde
-      const response = await fetch('https://stablehorde.net/api/v2/generate/async', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': '0000000000',
-        },
-        body: JSON.stringify({
-          prompt: "a beautiful fantasy landscape with mountains and a river",
-          params: {
-            n: 1,
-            width: 512,
-            height: 512,
-            steps: 20,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate image');
-      }
-
-      const { id } = await response.json();
-
-      // Step 2: Check generation status
-      let imageUrl;
-      let attempts = 0;
-      const maxAttempts = 30;
-
-      while (attempts < maxAttempts) {
-        console.log(`Checking generation status (attempt ${attempts + 1}/${maxAttempts})...`);
-        const statusResponse = await fetch(`https://stablehorde.net/api/v2/generate/check/${id}`);
-        const statusData = await statusResponse.json();
-        console.log('Generation status:', statusData);
-
-        if (statusData.done) {
-          const resultResponse = await fetch(`https://stablehorde.net/api/v2/generate/status/${id}`);
-          const resultData = await resultResponse.json();
-          console.log('Generation result:', resultData);
-          imageUrl = resultData.generations[0].img;
-          console.log('Generated image URL:', imageUrl);
-          break;
+      // Step 1: Generate image using our improved API endpoint with retry logic
+      console.log('Generating image through local API...');
+      let response;
+      let retries = 0;
+      const maxRetries = 3;
+      
+      while (retries < maxRetries) {
+        try {
+          response = await fetch('/api/generate', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              prompt: "a beautiful fantasy landscape with mountains and a river, high quality, detailed",
+              negative_prompt: "ugly, blurry, low quality",
+              steps: 20,
+              cfg_scale: 7.0,
+              width: 512,
+              height: 512,
+              sampler_name: "k_euler_a"
+            }),
+          });
+          
+          // If successful, break out of retry loop
+          if (response.ok) break;
+          
+          console.log(`API request failed (attempt ${retries + 1}/${maxRetries}), status: ${response.status}`);
+        } catch (fetchError) {
+          console.error(`Network error during API request (attempt ${retries + 1}/${maxRetries}):`, fetchError);
         }
-
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        attempts++;
+        
+        retries++;
+        if (retries < maxRetries) {
+          // Wait before retrying (exponential backoff)
+          const waitTime = Math.min(1000 * Math.pow(2, retries), 8000);
+          console.log(`Retrying in ${waitTime}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
       }
 
-      if (!imageUrl) {
-        throw new Error('Image generation timed out');
+      if (!response || !response.ok) {
+        const errorMessage = response ? await response.text().catch(() => 'Unknown error') : 'Network request failed';
+        throw new Error(`Failed to generate image after ${maxRetries} attempts: ${errorMessage}`);
       }
 
-      // Step 3: Save image locally first
-      console.log('Fetching generated image...');
-      const imageResponse = await fetch(imageUrl);
-      const blob = await imageResponse.blob();
-      console.log('Image blob size:', blob.size);
-      const fileName = `nft_${Date.now()}.png`;
-      const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = fileName;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      window.URL.revokeObjectURL(url);
+      const responseData = await response.json().catch(() => {
+        throw new Error('Failed to parse API response as JSON');
+      });
+      
+      if (!responseData.image) {
+        throw new Error('API response missing image data');
+      }
 
-      // Step 4: Upload to IPFS
+      const imageUrl = `data:image/png;base64,${responseData.image}`;
+      console.log('Generated image successfully');
+
+      // Step 3: Process the generated image
+      console.log('Processing generated image...');
+      let blob;
+      try {
+        blob = await fetch(imageUrl).then(r => r.blob());
+        console.log('Image blob size:', blob.size);
+        
+        if (blob.size === 0) {
+          throw new Error('Generated image is empty');
+        }
+      } catch (blobError) {
+        console.error('Error processing image blob:', blobError);
+        throw new Error('Failed to process the generated image');
+      }
+
+      // Step 4: Upload to IPFS with improved error handling
       console.log('Uploading to IPFS...');
       const formData = new FormData();
       formData.append('file', blob);
 
-      console.log('Pinata JWT:', process.env.NEXT_PUBLIC_PINATA_JWT ? 'Present' : 'Missing');
-      
-      const ipfsResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
-        },
-        body: formData,
-      });
-
-      if (!ipfsResponse.ok) {
-        const errorText = await ipfsResponse.text();
-        console.error('IPFS upload failed:', errorText);
-        throw new Error(`Failed to upload to IPFS: ${errorText}`);
+      // Check for Pinata JWT token
+      if (!process.env.NEXT_PUBLIC_PINATA_JWT) {
+        throw new Error('Pinata JWT token not configured');
       }
-
-      const ipfsResult = await ipfsResponse.json();
-      console.log('IPFS upload result:', ipfsResult);
-      const { IpfsHash } = ipfsResult;
-      const tokenURI = `ipfs://${IpfsHash}`;
-      console.log('Final tokenURI:', tokenURI);
-
-      // Step 5: Mint NFT
-      if (!window.ethereum) {
-        throw new Error("Please install MetaMask");
-      }
-
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const network = await provider.getNetwork();
       
-      if (network.chainId !== POLYGON_AMOY_CHAIN_ID) {
-        await switchToPolygonAmoy(provider);
-        // After switching networks, we need to get a new provider instance
-        const updatedProvider = new ethers.providers.Web3Provider(window.ethereum);
-        await updatedProvider.send("eth_requestAccounts", []);
-        const signer = updatedProvider.getSigner();
+      console.log('Starting IPFS upload...');
+      
+      // Use AbortController to set a timeout for the fetch request
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+      
+      try {
+        // Retry IPFS upload if needed
+        let ipfsResponse;
+        retries = 0;
         
-        const contract = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          BrowserMintNFT.abi,
-          signer
-        );
-
-        console.log("Minting NFT with tokenURI:", tokenURI);
-        const mintTx = await contract.mintNFT(tokenURI);
-        console.log("Mint transaction sent:", mintTx.hash);
+        while (retries < maxRetries) {
+          try {
+            ipfsResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+              },
+              body: formData,
+              signal: controller.signal
+            });
+            
+            // If successful, break out of retry loop
+            if (ipfsResponse.ok) break;
+            
+            console.log(`IPFS upload failed (attempt ${retries + 1}/${maxRetries}), status: ${ipfsResponse.status}`);
+          } catch (fetchError) {
+            if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+              throw new Error('IPFS upload timed out after 30 seconds');
+            }
+            console.error(`Network error during IPFS upload (attempt ${retries + 1}/${maxRetries}):`, fetchError);
+          }
+          
+          retries++;
+          if (retries < maxRetries) {
+            // Wait before retrying (exponential backoff)
+            const waitTime = Math.min(2000 * Math.pow(2, retries), 8000);
+            console.log(`Retrying IPFS upload in ${waitTime}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+          }
+        }
         
-        const receipt = await mintTx.wait();
-        console.log("Full transaction receipt:", receipt);
+        // Clear the timeout since the request completed
+        clearTimeout(timeoutId);
 
-        // Get the tokenId from the return value
-        const tokenId = receipt.events?.[0]?.topics?.[3];
-        if (!tokenId) {
-          console.error("No token ID found in events:", receipt.events);
-          throw new Error("Failed to get token ID from transaction");
+        if (!ipfsResponse || !ipfsResponse.ok) {
+          const errorText = ipfsResponse ? await ipfsResponse.text().catch(() => 'Unknown error') : 'Network request failed';
+          throw new Error(`Failed to upload to IPFS after ${maxRetries} attempts: ${errorText}`);
         }
 
-        // Convert from hex to decimal
-        const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString();
-        console.log("Token ID:", tokenIdDecimal);
-        onMintSuccess(tokenIdDecimal);
-      } else {
-        // If already on Polygon Amoy
-        const signer = provider.getSigner();
-        const contract = new ethers.Contract(
-          CONTRACT_ADDRESS,
-          BrowserMintNFT.abi,
-          signer
-        );
-
-        console.log("Minting NFT with tokenURI:", tokenURI);
-        const mintTx = await contract.mintNFT(tokenURI);
-        console.log("Mint transaction sent:", mintTx.hash);
+        const ipfsResult = await ipfsResponse.json().catch(() => {
+          throw new Error('Failed to parse IPFS response as JSON');
+        });
         
-        const receipt = await mintTx.wait();
-        console.log("Full transaction receipt:", receipt);
-
-        // Get the tokenId from the return value
-        const tokenId = receipt.events?.[0]?.topics?.[3];
-        if (!tokenId) {
-          console.error("No token ID found in events:", receipt.events);
-          throw new Error("Failed to get token ID from transaction");
+        console.log('IPFS upload successful:', ipfsResult);
+        const { IpfsHash } = ipfsResult;
+        
+        if (!IpfsHash) {
+          throw new Error('IPFS response missing hash');
+        }
+        
+        // Store the IPFS hash
+        setIpfsHash(IpfsHash);
+        
+        const tokenURI = `ipfs://${IpfsHash}`;
+        console.log('Final tokenURI:', tokenURI);
+        
+        // Step 5: Mint NFT
+        if (!window.ethereum) {
+          throw new Error("Please install MetaMask");
         }
 
-        // Convert from hex to decimal
-        const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString();
-        console.log("Token ID:", tokenIdDecimal);
-        onMintSuccess(tokenIdDecimal);
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const network = await provider.getNetwork();
+        
+        if (network.chainId !== POLYGON_AMOY_CHAIN_ID) {
+          await switchToPolygonAmoy(provider);
+          // After switching networks, we need to get a new provider instance
+          const updatedProvider = new ethers.providers.Web3Provider(window.ethereum);
+          await updatedProvider.send("eth_requestAccounts", []);
+          const signer = updatedProvider.getSigner();
+          
+          const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            BrowserMintNFT.abi,
+            signer
+          );
+
+          console.log("Minting NFT with tokenURI:", tokenURI);
+          const mintTx = await contract.mintNFT(tokenURI);
+          console.log("Mint transaction sent:", mintTx.hash);
+          
+          const receipt = await mintTx.wait();
+          console.log("Full transaction receipt:", receipt);
+
+          // Get the tokenId from the return value
+          const tokenId = receipt.events?.[0]?.topics?.[3];
+          if (!tokenId) {
+            console.error("No token ID found in events:", receipt.events);
+            throw new Error("Failed to get token ID from transaction");
+          }
+
+          // Convert from hex to decimal
+          const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString();
+          console.log("Token ID:", tokenIdDecimal);
+          setMintedTokenId(tokenIdDecimal);
+          // Only call setTokenId if provided
+          if (setTokenId) {
+            setTokenId(tokenIdDecimal);
+          }
+        } else {
+          // If already on Polygon Amoy
+          const signer = provider.getSigner();
+          const contract = new ethers.Contract(
+            CONTRACT_ADDRESS,
+            BrowserMintNFT.abi,
+            signer
+          );
+
+          console.log("Minting NFT with tokenURI:", tokenURI);
+          const mintTx = await contract.mintNFT(tokenURI);
+          console.log("Mint transaction sent:", mintTx.hash);
+          
+          const receipt = await mintTx.wait();
+          console.log("Full transaction receipt:", receipt);
+
+          // Get the tokenId from the return value
+          const tokenId = receipt.events?.[0]?.topics?.[3];
+          if (!tokenId) {
+            console.error("No token ID found in events:", receipt.events);
+            throw new Error("Failed to get token ID from transaction");
+          }
+
+          // Convert from hex to decimal
+          const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString();
+          console.log("Token ID:", tokenIdDecimal);
+          setMintedTokenId(tokenIdDecimal);
+          // Only call setTokenId if provided
+          if (setTokenId) {
+            setTokenId(tokenIdDecimal);
+          }
+        }
+      } catch (unknownError) {
+        // Properly handle error with type checking
+        if (unknownError instanceof Error && unknownError.name === 'AbortError') {
+          throw new Error('IPFS upload timed out after 30 seconds');
+        }
+        throw unknownError;
       }
 
     } catch (err) {
@@ -249,7 +323,7 @@ export default function MintButton({ onMintSuccess }: MintButtonProps) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-6">
+    <div className="flex flex-col items-center gap-6 w-full">
       <button
         onClick={handleMint}
         disabled={isMinting}
@@ -270,18 +344,21 @@ export default function MintButton({ onMintSuccess }: MintButtonProps) {
         )}
       </button>
 
+      {error && (
+        <div className="text-red-500 text-sm">
+          {error}
+        </div>
+      )}
+
+      {/* NFT Viewer shows IPFS and blockchain information */}
+      {ipfsHash && <NFTViewer ipfsHash={ipfsHash} tokenId={mintedTokenId} />}
+
       <button
         onClick={handleCreateWallet}
         className="text-blue-500 hover:text-blue-600 text-sm underline"
       >
         Don&apos;t have a wallet?
       </button>
-
-      {error && (
-        <div className="text-red-500 text-sm">
-          {error}
-        </div>
-      )}
     </div>
   );
 }
