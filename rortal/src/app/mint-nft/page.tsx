@@ -153,7 +153,7 @@ export default function MintNFT() {
                           className="w-full h-full object-cover"
                         />
                       </div>
-                      <MintButton setTokenId={setMintedTokenId} />
+                      <MintButton setTokenId={setMintedTokenId} imageUrl={generatedImageUrl} />
                     </div>
                   ) : (
                     <div className="aspect-square rounded-lg overflow-hidden border border-white/10 flex items-center justify-center text-gray-500">

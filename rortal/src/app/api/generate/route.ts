@@ -1,7 +1,8 @@
 import { NextResponse } from 'next/server';
 
-const STABLE_HORDE_API_KEY = process.env.STABLE_HORDE_API_KEY;
-const STABLE_HORDE_API_URL = 'https://stablehorde.net/api/v2/generate/async';
+// AUTOMATIC1111 WebUI API configuration
+const SD_API_URL = process.env.SD_API_URL || 'http://127.0.0.1:7860'; // Default local address
+const API_ENDPOINT = `${SD_API_URL}/sdapi/v1/txt2img`;
 
 // Increase the Next.js API route timeout (for Vercel and similar platforms)
 export const config = {
@@ -13,118 +14,85 @@ export async function POST(request: Request) {
   try {
     const { prompt, negative_prompt, steps, cfg_scale, width, height, sampler_name } = await request.json();
 
-    if (!STABLE_HORDE_API_KEY) {
-      return NextResponse.json({ error: 'API key not configured' }, { status: 500 });
+    if (!SD_API_URL) {
+      return NextResponse.json({ error: 'AUTOMATIC1111 API URL not configured' }, { status: 500 });
     }
 
-    // Simplified parameters that match Stable Horde's API exactly
+    // Map to AUTOMATIC1111 parameters
     const params = {
-      steps: Math.min(steps || 20, 20),       // Increased default steps
-      cfg_scale: Math.min(cfg_scale || 7.0, 7.0), // Adjusted cfg_scale
-      width: Math.min(width || 512, 512),     // Increased default width
-      height: Math.min(height || 512, 512),   // Increased default height
-      sampler_name: sampler_name || 'k_euler_a',
-      n: 1,
+      prompt: prompt || '',
+      negative_prompt: negative_prompt || '',
+      steps: steps || 4, // Lower default for faster generation with LCM
+      cfg_scale: cfg_scale || 7.0,
+      width: width || 512,
+      height: height || 512,
+      sampler_name: mapSamplerName(sampler_name),
+      batch_size: 1,
+      n_iter: 1,
+      seed: -1, // Random seed
+      enable_hr: false, // No high-res fix for faster generation
+      denoising_strength: 0.7
     };
 
-    // Validate sampler name
-    const validSamplers = [
-      'k_heun', 'k_lms', 'k_dpm_2_a', 'k_dpm_2', 'k_dpm_adaptive',
-      'k_dpmpp_2m', 'DDIM', 'dpmsolver', 'k_euler_a', 'lcm',
-      'k_euler', 'k_dpmpp_sde', 'k_dpm_fast', 'k_dpmpp_2s_a'
-    ];
+    console.log('Sending request to AUTOMATIC1111:', JSON.stringify(params));
 
-    if (sampler_name && !validSamplers.includes(sampler_name)) {
-      throw new Error(`Invalid sampler name. Must be one of: ${validSamplers.join(', ')}`);
-    }
-
-    const response = await fetch(STABLE_HORDE_API_URL, {
+    // Make request to AUTOMATIC1111 WebUI API
+    const response = await fetch(API_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': STABLE_HORDE_API_KEY,
       },
-      body: JSON.stringify({
-        prompt: prompt,
-        negative_prompt: negative_prompt,
-        params: params,
-        models: ['stable_diffusion'],
-        nsfw: false,
-        censor_nsfw: false,
-        trusted_workers: true,
-        slow_workers: true, // Allow slower workers to increase chance of getting a result
-      }),
+      body: JSON.stringify(params),
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error('Stable Horde API Error:', errorData);
-      throw new Error(errorData.message || 'Failed to generate image');
+      let errorText = 'Failed to generate image';
+      try {
+        const errorData = await response.json();
+        errorText = errorData.detail || errorData.error || errorText;
+      } catch (e) {
+        errorText = await response.text().catch(() => errorText);
+      }
+      console.error('AUTOMATIC1111 API Error:', errorText);
+      throw new Error(errorText);
     }
 
     const data = await response.json();
-    const generationId = data.id;
-
-    // Improved polling strategy with exponential backoff
-    let attempts = 0;
-    const maxAttempts = 30; // Increased max attempts
-    let status;
-    let backoffTime = 1000; // Start with 1 second
-
-    do {
-      const statusResponse = await fetch(`https://stablehorde.net/api/v2/generate/check/${generationId}`, {
-        headers: {
-          'apikey': STABLE_HORDE_API_KEY,
-        },
-      });
-      
-      if (!statusResponse.ok) {
-        throw new Error('Failed to check generation status');
-      }
-      
-      status = await statusResponse.json();
-      
-      if (status.faulted) {
-        throw new Error('Generation failed');
-      }
-      
-      if (attempts >= maxAttempts) {
-        throw new Error('Generation timed out after multiple attempts');
-      }
-      
-      // If not done, implement exponential backoff
-      if (!status.done) {
-        attempts++;
-        console.log(`Waiting for generation, attempt ${attempts}/${maxAttempts}, wait time: ${backoffTime}ms`);
-        await new Promise(resolve => setTimeout(resolve, backoffTime));
-        
-        // Increase backoff time for next attempt (capped at 5 seconds)
-        backoffTime = Math.min(backoffTime * 1.5, 5000);
-      }
-    } while (!status.done);
-
-    // Get the generated image
-    const imageResponse = await fetch(`https://stablehorde.net/api/v2/generate/status/${generationId}`, {
-      headers: {
-        'apikey': STABLE_HORDE_API_KEY,
-      },
-    });
-
-    if (!imageResponse.ok) {
-      throw new Error('Failed to get generated image');
-    }
-
-    const imageData = await imageResponse.json();
     
-    if (!imageData.generations || imageData.generations.length === 0) {
+    if (!data.images || data.images.length === 0) {
       throw new Error('No images were generated');
     }
     
-    return NextResponse.json({ image: imageData.generations[0].img });
+    // First image in base64 format
+    const imageBase64 = data.images[0];
+    return NextResponse.json({ image: 'data:image/png;base64,' + imageBase64 });
   } catch (error) {
     console.error('Generation error:', error);
     return NextResponse.json({ 
       error: error instanceof Error ? error.message : 'Failed to generate image' 
     }, { status: 500 });
   }
+}
+
+// Helper function to map sampler names between different APIs
+function mapSamplerName(sampler: string | undefined): string {
+  // Map samplers to AUTOMATIC1111 names
+  const samplerMap: Record<string, string> = {
+    'lcm': 'LCM', // LCM sampler for fast generation
+    'k_euler_a': 'Euler a',
+    'k_euler': 'Euler',
+    'k_heun': 'Heun',
+    'k_dpm_2': 'DPM2',
+    'k_dpm_2_a': 'DPM2 a',
+    'k_lms': 'LMS',
+    'k_dpm_fast': 'DPM fast',
+    'k_dpm_adaptive': 'DPM adaptive',
+    'k_dpmpp_2s_a': 'DPM++ 2S a',
+    'k_dpmpp_2m': 'DPM++ 2M',
+    'k_dpmpp_sde': 'DPM++ SDE',
+    'DDIM': 'DDIM'
+  };
+
+  // Return mapped sampler or default to LCM for speed
+  return sampler ? (samplerMap[sampler] || 'LCM') : 'LCM';
 } 

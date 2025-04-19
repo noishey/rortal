@@ -20,6 +20,34 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Image Generation with AUTOMATIC1111
+
+This project uses AUTOMATIC1111's Stable Diffusion web UI for image generation. Follow these steps to set it up:
+
+1. Install AUTOMATIC1111's Stable Diffusion Web UI:
+   - Follow the instructions at [AUTOMATIC1111 GitHub repository](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
+   - Make sure to install with the LCM sampler for fast generation
+
+2. Start the Web UI with API enabled:
+   ```bash
+   ./webui.sh --api
+   # or on Windows
+   webui-user.bat --api
+   ```
+
+3. Configure your environment:
+   - Create a `.env.local` file in the project root with:
+   ```
+   SD_API_URL=http://127.0.0.1:7860
+   ```
+   - If your AUTOMATIC1111 is running on a different machine, update the URL accordingly
+
+4. Test the integration:
+   - Generate an image using the UI to verify everything works
+   - Check the console for any API connection errors
+
+For best performance, we recommend using the LCM sampler with low steps (4-8) and cfg_scale (1.5-3.0).
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
