@@ -20,33 +20,31 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-## Image Generation with AUTOMATIC1111
+## Image Generation with Stable Horde
 
-This project uses AUTOMATIC1111's Stable Diffusion web UI for image generation. Follow these steps to set it up:
+This project uses Stable Horde for AI image generation. Follow these steps to set it up:
 
-1. Install AUTOMATIC1111's Stable Diffusion Web UI:
-   - Follow the instructions at [AUTOMATIC1111 GitHub repository](https://github.com/AUTOMATIC1111/stable-diffusion-webui)
-   - Make sure to install with the LCM sampler for fast generation
+1. Get a Stable Horde API key:
+   - Register at [Stable Horde](https://stablehorde.net/)
+   - Generate an API key in your account settings
 
-2. Start the Web UI with API enabled:
-   ```bash
-   ./webui.sh --api
-   # or on Windows
-   webui-user.bat --api
-   ```
-
-3. Configure your environment:
+2. Configure your environment:
    - Create a `.env.local` file in the project root with:
    ```
-   SD_API_URL=http://127.0.0.1:7860
+   STABLE_HORDE_API_KEY=your_api_key_here
+   NEXT_PUBLIC_PINATA_API_KEY=your_pinata_api_key_here
    ```
-   - If your AUTOMATIC1111 is running on a different machine, update the URL accordingly
+   - Note: The Stable Horde API will work with anonymous access if no key is provided, but with lower priority
+   - The Pinata API key is required for IPFS storage of generated images
 
-4. Test the integration:
+3. Test the integration:
    - Generate an image using the UI to verify everything works
    - Check the console for any API connection errors
 
-For best performance, we recommend using the LCM sampler with low steps (4-8) and cfg_scale (1.5-3.0).
+For best results with Stable Horde, we recommend using the following parameters:
+- Sampler: k_euler_a
+- Steps: 20-30
+- CFG Scale: 7.0-8.0
 
 ## Learn More
 

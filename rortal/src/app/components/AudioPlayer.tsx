@@ -55,6 +55,10 @@ export default function AudioPlayer() {
     };
   }, []);
 
+  useEffect(() => {
+    console.log("Audio loaded state:", audioLoaded);
+  }, [audioLoaded]);
+
   // Function to toggle play/pause
   const togglePlay = () => {
     const audio = audioRef.current;
@@ -73,7 +77,7 @@ export default function AudioPlayer() {
     <div className="fixed bottom-4 right-4 z-50">
       <audio
         ref={audioRef}
-        src="/bgm.mp3"
+        src="/synthbgm.mp3"
         loop
         preload="auto"
         className="hidden"

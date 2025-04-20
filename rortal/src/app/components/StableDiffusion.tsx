@@ -25,9 +25,9 @@ const uploadToPinata = async (file: File): Promise<string> => {
     const formData = new FormData();
     formData.append('file', file);
 
-    // Check for Pinata JWT token
-    if (!process.env.NEXT_PUBLIC_PINATA_JWT) {
-      throw new Error('Pinata JWT token not configured');
+    // Check for Pinata API key
+    if (!process.env.NEXT_PUBLIC_PINATA_API_KEY) {
+      throw new Error('Pinata API key not configured');
     }
 
     // Make request to Pinata API
@@ -35,10 +35,10 @@ const uploadToPinata = async (file: File): Promise<string> => {
       formData,
       {
         headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`,
+          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PINATA_API_KEY}`,
           'Content-Type': 'multipart/form-data'
         },
-        timeout: 30000 // 30 second timeout
+        timeout: 60000 // 30 second timeout
       }
     );
 
@@ -101,7 +101,7 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
     setImageBlob(null);
 
     try {
-      // Call the local API endpoint that connects to AUTOMATIC1111
+      // Call the local API endpoint that connects to Stable Horde
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
@@ -110,11 +110,12 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
         body: JSON.stringify({
           prompt: `${BASE_PROMPT}, ${selectedWords.join(', ')}`, // Combine base prompt with selected words
           negative_prompt: "text, watermark, signature, blurry", // Common negative prompts
-          steps: 4, // Low step count for LCM sampler
-          cfg_scale: 2.0, // Lower cfg_scale works better with LCM
+          steps: 25, // More steps for quality with Stable Horde
+          cfg_scale: 7.0, // Standard cfg_scale for Stable Horde
           width: 512, // Standard width
           height: 512, // Standard height
-          sampler_name: "lcm", // LCM sampler for fast generation
+          sampler_name: "k_euler_a", // Standard sampler for Stable Horde
+          seed: "-1", // Random seed as a string
         }),
       });
 
@@ -210,6 +211,12 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
             >
               {isUploading ? (
                 <div className="loading-circle" /> // Show loading spinner while uploading
+              ) : ipfsUrl ? (
+                // Success checkmark icon
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
               ) : (
                 // Upload icon
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -224,7 +231,7 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
       </div>
 
       {/* Right side - Image preview area */}
-      <div className="w-1/2 flex flex-col items-center justify-center min-h-[512px]">
+      <div className="w-1/2 flex flex-col items-center justify-center min-h-[256px]">
         {generatedImage ? (
           <>
             {/* Show generated image if available */}
