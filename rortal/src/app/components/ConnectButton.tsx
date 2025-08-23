@@ -1,20 +1,18 @@
 'use client';
 
 import { useAccount, useConnect, useDisconnect } from 'wagmi';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { injected } from 'wagmi/connectors';
 
 export default function ConnectButton() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect({
-    connector: new InjectedConnector(),
-  });
+  const { connect } = useConnect();
   const { disconnect } = useDisconnect();
 
   const handleClick = () => {
     if (isConnected) {
       disconnect();
     } else {
-      connect();
+      connect({ connector: injected() });
     }
   };
 
@@ -34,4 +32,4 @@ export default function ConnectButton() {
       )}
     </button>
   );
-} 
+}
