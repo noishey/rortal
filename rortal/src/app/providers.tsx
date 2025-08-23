@@ -1,33 +1,33 @@
 'use client';
 
-import { WagmiConfig, createConfig } from 'wagmi';
+import { WagmiProvider, createConfig, http } from 'wagmi';
 import { polygonAmoy } from 'wagmi/chains';
-import { publicProvider } from 'wagmi/providers/public';
-import { InjectedConnector } from 'wagmi/connectors/injected';
+import { injected } from 'wagmi/connectors';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from 'next-themes';
 
 const config = createConfig({
   chains: [polygonAmoy],
   transports: {
-    [polygonAmoy.id]: publicProvider(),
+    [polygonAmoy.id]: http(),
   },
   connectors: [
-    new InjectedConnector({
-      chains: [polygonAmoy],
-      options: {
-        name: 'MetaMask',
-        shimDisconnect: true,
-      },
+    injected({
+      target: 'metaMask',
     }),
   ],
 });
 
+const queryClient = new QueryClient();
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <WagmiConfig config={config}>
-        {children}
-      </WagmiConfig>
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <WagmiProvider config={config}>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+          {children}
+        </ThemeProvider>
+      </WagmiProvider>
+    </QueryClientProvider>
   );
-} 
+}

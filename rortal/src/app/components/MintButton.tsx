@@ -2,7 +2,7 @@
 import { useState } from "react"; // Import useState hook for component state management
 import { ethers } from "ethers"; // Import ethers library for blockchain interactions
 import { useAccount, useConnect, useDisconnect } from 'wagmi'; // Import wagmi hooks for wallet connection
-import { InjectedConnector } from 'wagmi/connectors/injected'; // Import connector for browser wallets like MetaMask
+import { injected } from 'wagmi/connectors'; // Import connector for browser wallets like MetaMask
 import BrowserMintNFT from "@/app/abi/BrowserMintNFT.json"; // Import ABI for the NFT contract
 import { polygonAmoy } from 'wagmi/chains'; // Import Polygon Amoy chain configuration
 import NFTViewer from './NFTViewer'; // Import NFT viewer component
@@ -10,7 +10,7 @@ import NFTViewer from './NFTViewer'; // Import NFT viewer component
 // Extend Window interface to include ethereum property for MetaMask
 declare global {
   interface Window {
-    ethereum: any;
+    ethereum?: any; // Define optional ethereum property on Window interface
   }
 }
 
@@ -18,6 +18,7 @@ declare global {
 interface MintButtonProps {
   onSuccessTokenId?: string; // Optional prop for token ID after successful mint
   setTokenId?: (tokenId: string) => void; // Optional callback to set token ID
+  setMintedTokenId?: (tokenId: string) => void; // Optional callback to set minted token ID
   imageUrl?: string | null; // Optional prop for pre-generated image URL
 }
 
@@ -26,9 +27,7 @@ const CONTRACT_ADDRESS = "0xd9Aa3fAe83B41f4F9835fB7ab7d087f0c91419ED"; // NFT co
 
 export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: providedImageUrl }: MintButtonProps) {
   const { address, isConnected } = useAccount(); // Get wallet connection status and address
-  const { connect } = useConnect({
-    connector: new InjectedConnector(), // Configure connection with browser wallet
-  });
+  const { connect } = useConnect(); // Get connect function from wagmi
   const [isMinting, setIsMinting] = useState(false); // Track minting status
   const [error, setError] = useState<string | null>(null); // Store error messages
   const [ipfsHash, setIpfsHash] = useState<string | null>(null); // Store IPFS hash after upload
@@ -73,7 +72,7 @@ export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: pro
   // Main function to handle the minting process
   const handleMint = async () => {
     if (!isConnected) {
-      connect(); // Connect wallet if not already connected
+      connect({ connector: injected() }); // Connect wallet if not already connected
       return;
     }
 
@@ -94,7 +93,7 @@ export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: pro
         while (retries < maxRetries) {
           try {
             response = await fetch('/api/generate', { // Call local API to generate image
-              method: 'POST',
+              method: 'POST', // Use POST HTTP method
               headers: {
                 'Content-Type': 'application/json',
               },
@@ -186,7 +185,7 @@ export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: pro
         while (retries < maxRetries) {
           try {
             ipfsResponse = await fetch('https://api.pinata.cloud/pinning/pinFileToIPFS', { // Upload to Pinata IPFS
-              method: 'POST',
+              method: 'POST', // Use POST HTTP method
               headers: {
                 'Authorization': `Bearer ${process.env.NEXT_PUBLIC_PINATA_JWT}`, // Authorization header with JWT
               },
@@ -278,9 +277,12 @@ export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: pro
           const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString(); // Convert token ID to decimal string
           console.log("Token ID:", tokenIdDecimal); // Log token ID
           setMintedTokenId(tokenIdDecimal); // Store token ID in state
-          // Only call setTokenId if provided
+          // Call parent component callbacks if provided
           if (setTokenId) {
-            setTokenId(tokenIdDecimal); // Call parent component callback if provided
+            setTokenId(tokenIdDecimal); // Call setTokenId callback if provided
+          }
+          if (setMintedTokenId) {
+            setMintedTokenId(tokenIdDecimal); // Call setMintedTokenId callback if provided
           }
         } else {
           // If already on Polygon Amoy
@@ -309,9 +311,12 @@ export default function MintButton({ onSuccessTokenId, setTokenId, imageUrl: pro
           const tokenIdDecimal = ethers.BigNumber.from(tokenId).toString(); // Convert token ID to decimal string
           console.log("Token ID:", tokenIdDecimal); // Log token ID
           setMintedTokenId(tokenIdDecimal); // Store token ID in state
-          // Only call setTokenId if provided
+          // Call parent component callbacks if provided
           if (setTokenId) {
-            setTokenId(tokenIdDecimal); // Call parent component callback if provided
+            setTokenId(tokenIdDecimal); // Call setTokenId callback if provided
+          }
+          if (setMintedTokenId) {
+            setMintedTokenId(tokenIdDecimal); // Call setMintedTokenId callback if provided
           }
         }
       } catch (unknownError) {
