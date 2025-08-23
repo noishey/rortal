@@ -4,11 +4,9 @@ import { NextResponse } from 'next/server';
 const STABLE_HORDE_API_URL = 'https://stablehorde.net/api/v2';
 const STABLE_HORDE_API_KEY = process.env.STABLE_HORDE_API_KEY || ''; // Default to empty string if not set
 
-// Increase the Next.js API route timeout (for Vercel and similar platforms)
-export const config = {
-  runtime: 'edge',
-  maxDuration: 60, // 60 seconds timeout
-};
+// Configure edge runtime for better performance
+export const runtime = "edge";
+export const maxDuration = 60; // 60 seconds timeout
 
 export async function POST(request: Request) {
   try {
@@ -153,4 +151,4 @@ export async function POST(request: Request) {
       error: error instanceof Error ? error.message : 'Failed to generate image' 
     }, { status: 500 });
   }
-} 
+}
