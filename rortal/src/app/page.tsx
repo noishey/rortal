@@ -1,288 +1,327 @@
-"use client"
+'use client';
 
+import { useState } from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
-import { useState, useEffect, useRef } from 'react';
-import MintButton from "@/app/components/MintButton";
-import MintedNFT from "./components/MintedNFT";
-import AudioPlayer from "./components/AudioPlayer";
-import StableDiffusion from "./components/StableDiffusion";
-import ScrollSound from "./components/ScrollSound";
-import MintNFT from './components/MintNFT';
-import { useTheme } from 'next-themes';
+import ConnectButton from './components/ConnectButton';
 
-export default function Home() {
-  const { theme, setTheme } = useTheme();
-  const [mintedTokenId, setMintedTokenId] = useState<string | null>(null);
-  const viewportRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const [currentViewport, setCurrentViewport] = useState(0);
-  const [mounted, setMounted] = useState(false);
-
-  // After mounting, we can render theme-dependent elements
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    // Add smooth scrolling behavior
-    document.documentElement.style.scrollBehavior = 'smooth';
-    
-    // Handle scroll events
-    const handleScroll = (e: WheelEvent) => {
-      e.preventDefault();
-      const delta = e.deltaY;
-      const currentScroll = window.scrollX;
-      const viewportWidth = window.innerWidth;
-      const scrollAmount = Math.abs(delta) > 50 ? viewportWidth : viewportWidth / 2;
-      const nextScroll = delta > 0 
-        ? Math.min(currentScroll + scrollAmount, viewportWidth * 4) // Limit to last viewport
-        : Math.max(currentScroll - scrollAmount, 0); // Don't go below 0
-      
-      window.scrollTo({
-        left: nextScroll,
-        behavior: 'smooth'
-      });
-    };
-
-    // Intersection Observer for viewport animations
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('opacity-100');
-          } else {
-            entry.target.classList.remove('opacity-100');
-          }
-        });
-      },
-      { threshold: 0.5 }
-    );
-
-    // Observe all viewports
-    viewportRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    window.addEventListener('wheel', handleScroll, { passive: false });
-    return () => {
-      window.removeEventListener('wheel', handleScroll);
-      observer.disconnect();
-    };
-  }, []);
+export default function HomePage() {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <main className="flex flex-row w-[500vw] h-[calc(100vh-10px)] pb-3 bg-background text-foreground overflow-x-auto">
-      <AudioPlayer />
-      <ScrollSound />
-      
-      {/* Theme Switcher */}
-      <button
-        onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-        className="fixed top-4 right-4 p-2 rounded-full bg-secondary/20 hover:bg-secondary/30 transition-colors z-50"
-        aria-label="Toggle theme"
-      >
-        {mounted && (theme === 'dark' ? (
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
-          </svg>
-        ) : (
-          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="4"/>
-            <path d="M12 2v2"/>
-            <path d="M12 20v2"/>
-            <path d="m4.93 4.93 1.41 1.41"/>
-            <path d="m17.66 17.66 1.41 1.41"/>
-            <path d="M2 12h2"/>
-            <path d="M20 12h2"/>
-            <path d="m6.34 17.66-1.41 1.41"/>
-            <path d="m19.07 4.93-1.41 1.41"/>
-          </svg>
-        ))}
-      </button>
-      
-      {/* Viewport 1 */}
-      <div 
-        ref={el => { if (el) viewportRefs.current[0] = el }}
-        className="w-screen h-screen flex items-center justify-center p-8 snap-start opacity-0 transition-opacity duration-1000"
-      >
-        <div className="flex flex-row items-center justify-between w-full max-w-6xl gap-12">
-          {/* Left text - takes up half the width */}
-          <div className="typing-container w-1/2">
-            <h1 className="text-[8rem] font-black mb-4 typing-text">
-              ((( r )))
-            </h1>
-            <p className="text-6xl font-bold typing-text glitch-text" data-text="&ldquo;leave a mark&rdquo;" style={{ animationDelay: '3.5s' }}>
-              &ldquo;leave a mark&rdquo;
+    <div className="min-h-screen bg-black text-white">
+      {/* Hero Section with Hamburger Navigation */}
+      <section className="relative min-h-screen flex flex-col">
+        {/* Mobile-First Header with Hamburger */}
+        <header className="flex justify-between items-center p-4 sm:p-6 relative z-50">
+          <h1 className="text-xl font-bold sm:text-2xl">Rortal</h1>
+          
+          {/* Desktop Navigation */}
+          <nav className="hidden lg:flex items-center space-x-8">
+            <a href="#showcase" className="hover:text-blue-400 transition-colors">Showcase</a>
+            <a href="#creators" className="hover:text-blue-400 transition-colors">Creators</a>
+            <a href="#discover" className="hover:text-blue-400 transition-colors">Discover</a>
+            <a href="#how-it-works" className="hover:text-blue-400 transition-colors">How It Works</a>
+          </nav>
+          
+          {/* Mobile Hamburger Menu */}
+          <div className="lg:hidden flex items-center space-x-4">
+            <ConnectButton />
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="p-2 rounded-md hover:bg-gray-800 transition-colors"
+              aria-label="Toggle menu"
+            >
+              <div className="w-6 h-6 flex flex-col justify-center items-center">
+                <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'rotate-45 translate-y-1' : '-translate-y-1'}`}></span>
+                <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
+                <span className={`block w-5 h-0.5 bg-white transition-all duration-300 ${isMenuOpen ? '-rotate-45 -translate-y-1' : 'translate-y-1'}`}></span>
+              </div>
+            </button>
+          </div>
+          
+          {/* Desktop Connect Button */}
+          <div className="hidden lg:block">
+            <ConnectButton />
+          </div>
+        </header>
+
+        {/* Mobile Menu Overlay */}
+        {isMenuOpen && (
+          <div className="lg:hidden fixed inset-0 bg-black bg-opacity-95 z-40 pt-20">
+            <nav className="flex flex-col items-center space-y-8 text-xl">
+              <a href="#showcase" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Showcase</a>
+              <a href="#creators" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Top Creators</a>
+              <a href="#discover" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Discover NFTs</a>
+              <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">How It Works</a>
+            </nav>
+          </div>
+        )}
+
+        {/* Hero Content */}
+        <div className="flex-1 flex items-center justify-center px-4 py-8 sm:px-6">
+          <div className="text-center max-w-sm mx-auto sm:max-w-2xl lg:max-w-4xl">
+            <h2 className="text-3xl font-bold mb-4 sm:text-4xl lg:text-5xl xl:text-6xl sm:mb-6 leading-tight">
+              Create AI-Powered NFTs
+            </h2>
+            <p className="text-base text-gray-400 mb-8 sm:text-lg lg:text-xl sm:mb-10 leading-relaxed max-w-2xl mx-auto">
+              Generate unique digital art using AI and mint it as an NFT on the blockchain. Join the future of digital creativity.
             </p>
-          </div>
-
-          {/* Right image - takes up half the width */}
-          <div className="breathing-image grayscale hover:grayscale-0 transition-all duration-500 w-1/2 flex justify-center">
-            <Image
-              src="/22.png"
-              alt="Your Image"
-              width={400}
-              height={400}
-              className="object-cover"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Viewport 2 */}
-      <div 
-        ref={el => { if (el) viewportRefs.current[1] = el }}
-        className="w-screen h-screen flex items-center justify-center p-8 snap-start opacity-0 transition-opacity duration-1000"
-      >
-        <div className="w-full max-w-6xl">
-          <StableDiffusion />
-        </div>
-      </div>
-
-      {/* Viewport 3 */}
-      <div 
-        ref={el => { if (el) viewportRefs.current[2] = el }}
-        className="w-screen h-screen flex items-center justify-center p-8 snap-start opacity-0 transition-opacity duration-1000"
-      >
-        <div className="flex flex-col gap-4 items-center">
-          {!mintedTokenId ? (
-            <MintButton onMintSuccess={setMintedTokenId} />
-          ) : (
-            <MintedNFT tokenId={mintedTokenId} />
-          )}
-        </div>
-      </div>
-
-      {/* Viewport 4 */}
-      <div 
-        ref={el => { if (el) viewportRefs.current[3] = el }}
-        className="w-screen h-screen flex items-center justify-center p-8 snap-start opacity-0 transition-opacity duration-1000"
-      >
-        {/* Viewport 4 grid layout with 1:1 grids */}
-        <div className="w-full max-w-6xl">
-          <p>Gallery</p>
-        </div>
-      </div>
-
-      {/* Last viewport - Combined Icons */}
-      <div 
-        ref={el => { if (el) viewportRefs.current[4] = el }}
-        className="w-screen h-screen snap-start flex items-center justify-center p-8 opacity-0 transition-opacity duration-1000"
-      >
-        <div className="flex flex-col items-center gap-12">
-          {/* Buy Me A Coffee Row */}
-          <div className="flex flex-row gap-12">
-            <button className="bg-secondary text-secondary-foreground p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8h1a4 4 0 0 1 0 8h-1"/>
-                <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>
-                <path d="M6 1v4"/>
-                <path d="M10 1v4"/>
-                <path d="M14 1v4"/>
-                <path d="M18 1v4"/>
-              </svg>
-            </button>
-            <button className="bg-foreground text-background p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="8" cy="12" r="6"/>
-                <circle cx="16" cy="12" r="6"/>
-                <path d="M8 12h8"/>
-              </svg>
-            </button>
-            <button className="bg-secondary text-secondary-foreground p-4 rounded-lg font-medium hover:bg-opacity-90 transition-colors hover:scale-110 transform duration-300">
-              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-              </svg>
-            </button>
-          </div>
-
-          {/* Social Media Icons */}
-          <div className="flex flex-col items-center gap-6">
-            <h2 className="text-4xl font-bold">Connect</h2>
-            <div className="flex gap-6">
-              {/* Twitter */}
-              <a
-                href="https://twitter.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+            <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:justify-center">
+              <Link 
+                href="/mint-nft"
+                className="block w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-4 px-8 rounded-lg transition-colors text-center sm:w-auto"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/>
-                </svg>
-              </a>
-
-              {/* Discord */}
-              <a
-                href="https://discord.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
+                Start Creating
+              </Link>
+              <a 
+                href="#showcase"
+                className="block w-full border border-white/20 hover:border-white/40 text-white font-semibold py-4 px-8 rounded-lg transition-colors text-center sm:w-auto"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                  <path d="M17 8l-5 5-5-5"/>
-                </svg>
-              </a>
-
-              {/* Mirror */}
-              <a
-                href="https://mirror.xyz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                  <path d="M12 8v8"/>
-                  <path d="M8 12h8"/>
-                </svg>
-              </a>
-
-              {/* XYZ */}
-              <a
-                href="https://xyz"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
-                  <path d="M2 17l10 5 10-5"/>
-                  <path d="M2 12l10 5 10-5"/>
-                </svg>
-              </a>
-
-              {/* GitHub */}
-              <a
-                href="https://github.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/>
-                </svg>
-              </a>
-
-              {/* Medium */}
-              <a
-                href="https://medium.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 rounded-lg bg-secondary hover:bg-secondary/80 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 20h.01"/>
-                  <path d="M7 20v-4"/>
-                  <path d="M12 20V8"/>
-                  <path d="M17 20V4"/>
-                  <path d="M22 20v-12"/>
-                </svg>
+                Explore Gallery
               </a>
             </div>
           </div>
         </div>
-      </div>
-    </main>
+      </section>
+
+      {/* Showcase Section */}
+      <section id="showcase" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl font-bold mb-4 sm:text-3xl lg:text-4xl">Featured Artwork</h2>
+            <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
+              Discover amazing AI-generated NFTs created by our community
+            </p>
+          </div>
+          
+          {/* Mobile-First Gallery Grid */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[1, 2, 3, 4, 5, 6].map((item) => (
+              <div key={item} className="bg-gray-900 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
+                <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                  <div className="absolute inset-0 flex items-center justify-center text-white font-semibold">
+                    AI Art #{item}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold mb-2">Digital Dreams #{item}</h3>
+                  <p className="text-gray-400 text-sm mb-3">by Creator{item}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-blue-400 font-semibold">0.{item} ETH</span>
+                    <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded transition-colors">
+                      View
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Top Creators Section */}
+      <section id="creators" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl font-bold mb-4 sm:text-3xl lg:text-4xl">Top Creators</h2>
+            <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
+              Meet the artists pushing the boundaries of AI-generated art
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((creator) => (
+              <div key={creator} className="bg-gray-800 rounded-lg p-6 text-center hover:bg-gray-700 transition-colors">
+                <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-blue-500 rounded-full mx-auto mb-4 flex items-center justify-center text-white font-bold text-xl">
+                  C{creator}
+                </div>
+                <h3 className="font-semibold text-lg mb-2">Creator {creator}</h3>
+                <p className="text-gray-400 text-sm mb-4">Digital Artist & AI Enthusiast</p>
+                <div className="flex justify-center space-x-6 text-sm">
+                  <div>
+                    <div className="font-semibold text-blue-400">{creator * 15}</div>
+                    <div className="text-gray-400">NFTs</div>
+                  </div>
+                  <div>
+                    <div className="font-semibold text-green-400">{creator * 2.5} ETH</div>
+                    <div className="text-gray-400">Volume</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Create & Mint Section */}
+      <section className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto text-center">
+          <h2 className="text-2xl font-bold mb-4 sm:text-3xl lg:text-4xl">Create & Mint Your NFT</h2>
+          <p className="text-gray-400 text-base sm:text-lg mb-12 max-w-2xl mx-auto">
+            Transform your ideas into unique digital assets with our AI-powered creation tools
+          </p>
+          
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 mb-12">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+                🎨
+              </div>
+              <h3 className="font-semibold mb-2">Generate</h3>
+              <p className="text-gray-400 text-sm">Use AI to create unique artwork from your prompts</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+                ⚡
+              </div>
+              <h3 className="font-semibold mb-2">Mint</h3>
+              <p className="text-gray-400 text-sm">Turn your art into an NFT on the blockchain</p>
+            </div>
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+                💎
+              </div>
+              <h3 className="font-semibold mb-2">Trade</h3>
+              <p className="text-gray-400 text-sm">List and sell your NFTs on marketplaces</p>
+            </div>
+          </div>
+          
+          <Link 
+            href="/mint-nft"
+            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
+          >
+            Start Creating Now
+          </Link>
+        </div>
+      </section>
+
+      {/* Discover NFTs Section */}
+      <section id="discover" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6 bg-gray-900/50">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl font-bold mb-4 sm:text-3xl lg:text-4xl">Discover NFTs</h2>
+            <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
+              Explore the latest trends and collections in the NFT space
+            </p>
+          </div>
+          
+          {/* Category Filters */}
+          <div className="flex flex-wrap justify-center gap-3 mb-12">
+            {['All', 'Art', 'Photography', 'Music', 'Gaming', 'Sports'].map((category) => (
+              <button 
+                key={category}
+                className="px-4 py-2 bg-gray-800 hover:bg-blue-600 rounded-full text-sm transition-colors"
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+          
+          {/* Trending Collections */}
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            {[1, 2, 3, 4].map((collection) => (
+              <div key={collection} className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
+                <div className="aspect-video bg-gradient-to-br from-pink-500 to-orange-500 relative">
+                  <div className="absolute inset-0 flex items-center justify-center text-white font-semibold">
+                    Collection {collection}
+                  </div>
+                </div>
+                <div className="p-4">
+                  <h3 className="font-semibold mb-2">Trending Collection #{collection}</h3>
+                  <p className="text-gray-400 text-sm mb-3">{collection * 100} items</p>
+                  <div className="text-blue-400 font-semibold">Floor: {collection}.{collection} ETH</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works Section */}
+      <section id="how-it-works" className="py-16 sm:py-20 lg:py-24 px-4 sm:px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12 sm:mb-16">
+            <h2 className="text-2xl font-bold mb-4 sm:text-3xl lg:text-4xl">How It Works</h2>
+            <p className="text-gray-400 text-base sm:text-lg max-w-2xl mx-auto">
+              Get started with AI-powered NFT creation in just a few simple steps
+            </p>
+          </div>
+          
+          <div className="space-y-8 sm:space-y-12">
+            {[
+              { step: 1, title: 'Connect Your Wallet', desc: 'Link your crypto wallet to get started with minting and trading' },
+              { step: 2, title: 'Generate AI Art', desc: 'Use our AI tools to create unique artwork from text prompts' },
+              { step: 3, title: 'Mint as NFT', desc: 'Transform your creation into a blockchain-verified NFT' },
+              { step: 4, title: 'List & Sell', desc: 'Share your NFT with the world and start earning' }
+            ].map((item) => (
+              <div key={item.step} className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                <div className="flex-shrink-0 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
+                  {item.step}
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-semibold text-lg mb-2">{item.title}</h3>
+                  <p className="text-gray-400">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-gray-900 py-12 sm:py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+            <div>
+              <h3 className="font-bold text-lg mb-4">Rortal</h3>
+              <p className="text-gray-400 text-sm mb-4">
+                The future of AI-powered NFT creation and trading.
+              </p>
+              <div className="flex space-x-4">
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Twitter</a>
+                <a href="#" className="text-gray-400 hover:text-white transition-colors">Discord</a>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Marketplace</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Explore</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Create</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Collections</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Resources</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">API</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-4">Company</h4>
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="border-t border-gray-800 pt-8 flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+            <p className="text-gray-400 text-sm">
+              © 2024 Rortal. All rights reserved.
+            </p>
+            <div className="flex space-x-6 text-sm text-gray-400">
+              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
   );
 }

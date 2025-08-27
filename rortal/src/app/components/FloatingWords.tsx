@@ -1,6 +1,5 @@
 "use client"
 
-import { motion } from 'framer-motion';
 import { useState, useEffect } from 'react';
 
 interface FloatingWordsProps {
@@ -9,87 +8,45 @@ interface FloatingWordsProps {
   onWordClick: (word: string) => void;
 }
 
-// Function to generate random darker colors
-const getRandomDarkColor = () => {
-  const hue = Math.floor(Math.random() * 360);
-  const saturation = Math.floor(Math.random() * 30) + 70; // 70-100%
-  const lightness = Math.floor(Math.random() * 20) + 20; // 20-40%
-  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+const getRandomColor = () => {
+  const colors = [
+    'text-blue-600', 'text-purple-600', 'text-green-600', 
+    'text-red-600', 'text-yellow-600', 'text-pink-600',
+    'text-indigo-600', 'text-teal-600'
+  ];
+  return colors[Math.floor(Math.random() * colors.length)];
 };
 
 export default function FloatingWords({ words, selectedWords, onWordClick }: FloatingWordsProps) {
-  const [positions, setPositions] = useState<{ [key: string]: { x: number; y: number } }>({});
-  const [colors, setColors] = useState<{ [key: string]: string }>({});
+  const [wordColors, setWordColors] = useState<{ [key: string]: string }>({});
 
   useEffect(() => {
-    // Calculate grid positions
-    const gridSize = Math.ceil(Math.sqrt(words.length));
-    const cellSize = 150; // Size of each grid cell
-    const margin = 50; // Margin from edges
-    
-    const initialPositions = words.reduce((acc, word, index) => {
-      const row = Math.floor(index / gridSize);
-      const col = index % gridSize;
-      
-      // Center the grid
-      const offsetX = (gridSize * cellSize) / 2;
-      const offsetY = (gridSize * cellSize) / 2;
-      
-      acc[word] = {
-        x: (col * cellSize) - offsetX + margin,
-        y: (row * cellSize) - offsetY + margin,
-      };
-      return acc;
-    }, {} as { [key: string]: { x: number; y: number } });
-    
-    setPositions(initialPositions);
-
-    // Generate random colors for each word
-    const wordColors = words.reduce((acc, word) => {
-      acc[word] = getRandomDarkColor();
+    const colors = words.reduce((acc, word) => {
+      acc[word] = getRandomColor();
       return acc;
     }, {} as { [key: string]: string });
-    
-    setColors(wordColors);
+    setWordColors(colors);
   }, [words]);
 
   return (
-    <div className="w-full h-full relative">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 p-6">
       {words.map((word) => (
-        <motion.div
+        <button
           key={word}
-          className={`absolute cursor-pointer select-none`}
-          style={{
-            left: '50%',
-            top: '50%',
-            transform: 'translate(-50%, -50%)',
-            color: selectedWords.includes(word) ? 'hsl(0, 0%, 50%)' : colors[word]
-          }}
-          animate={{
-            x: [
-              positions[word]?.x || 0,
-              (positions[word]?.x || 0) + (Math.random() * 30 - 15),
-              (positions[word]?.x || 0) + (Math.random() * 30 - 15),
-              positions[word]?.x || 0
-            ],
-            y: [
-              positions[word]?.y || 0,
-              (positions[word]?.y || 0) + (Math.random() * 30 - 15),
-              (positions[word]?.y || 0) + (Math.random() * 30 - 15),
-              positions[word]?.y || 0
-            ]
-          }}
-          transition={{
-            duration: 8,
-            repeat: Infinity,
-            ease: "linear"
-          }}
-          whileHover={{ scale: 1.1 }}
           onClick={() => onWordClick(word)}
+          className={`
+            px-4 py-3 rounded-lg border-2 transition-all duration-200
+            hover:scale-105 hover:shadow-md
+            ${
+              selectedWords.includes(word)
+                ? 'border-blue-500 bg-blue-50 text-blue-700'
+                : `border-gray-200 bg-white hover:border-gray-300 ${wordColors[word] || 'text-gray-700'}`
+            }
+          `}
         >
-          <span className="text-2xl font-medium">{word}</span>
-        </motion.div>
+          <span className="text-lg font-medium">{word}</span>
+        </button>
       ))}
     </div>
   );
-} 
+}
