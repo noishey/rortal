@@ -28,7 +28,7 @@ export default function ConnectButton() {
           {`${address?.slice(0, 6)}...${address?.slice(-4)}`}
         </span>
       ) : (
-        'Wallets'
+        'Connect Wallet'
       )}
     </button>
   );

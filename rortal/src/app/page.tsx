@@ -50,10 +50,10 @@ export default function HomePage() {
         {isMenuOpen && (
           <div className="lg:hidden fixed inset-0 bg-black bg-opacity-95 z-40 pt-20">
             <nav className="flex flex-col items-center space-y-8 text-xl">
-              <a href="#showcase" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Showcase</a>
-              <a href="#creators" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Top Creators</a>
-              <a href="#discover" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">Discover NFTs</a>
-              <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="hover:text-blue-400 transition-colors">How It Works</a>
+              <a href="#showcase" onClick={() => setIsMenuOpen(false)} className="hover:text-primary transition-colors">Showcase</a>
+              <a href="#creators" onClick={() => setIsMenuOpen(false)} className="hover:text-primary transition-colors">Top Creators</a>
+              <a href="#discover" onClick={() => setIsMenuOpen(false)} className="hover:text-primary transition-colors">Discover NFTs</a>
+              <a href="#how-it-works" onClick={() => setIsMenuOpen(false)} className="hover:text-primary transition-colors">How It Works</a>
             </nav>
           </div>
         )}
@@ -70,7 +70,7 @@ export default function HomePage() {
             <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:justify-center">
               <Link 
                 href="/mint-nft"
-                className="block w-full bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-4 px-8 rounded-lg transition-colors text-center sm:w-auto"
+                className="block w-full bg-[#4b871c] hover:bg-[#4b871c]/90 active:bg-[#4b871c]/80 text-white font-semibold py-4 px-8 rounded-lg transition-colors text-center sm:w-auto"
               >
                 Start Creating
               </Link>
@@ -99,7 +99,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {[1, 2, 3, 4, 5, 6].map((item) => (
               <div key={item} className="bg-gray-900 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
-                <div className="aspect-square bg-gradient-to-br from-blue-500 to-purple-600 relative">
+                <div className="aspect-square bg-gradient-to-br from-gray-800 to-black relative">
                   <div className="absolute inset-0 flex items-center justify-center text-white font-semibold">
                     AI Art #{item}
                   </div>
@@ -108,8 +108,8 @@ export default function HomePage() {
                   <h3 className="font-semibold mb-2">Digital Dreams #{item}</h3>
                   <p className="text-gray-400 text-sm mb-3">by Creator{item}</p>
                   <div className="flex justify-between items-center">
-                    <span className="text-blue-400 font-semibold">0.{item} ETH</span>
-                    <button className="text-xs bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded transition-colors">
+                    <span className="text-primary font-semibold">0.{item} ETH</span>
+                    <button className="text-xs bg-primary hover:bg-primary/90 px-3 py-1 rounded transition-colors text-white">
                       View
                     </button>
                   </div>
@@ -164,21 +164,21 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 mb-12">
             <div className="text-center">
-              <div className="w-16 h-16 bg-blue-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+              <div className="w-16 h-16 bg-gray-800 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
                 🎨
               </div>
               <h3 className="font-semibold mb-2">Generate</h3>
               <p className="text-gray-400 text-sm">Use AI to create unique artwork from your prompts</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+              <div className="w-16 h-16 bg-gray-700 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
                 ⚡
               </div>
               <h3 className="font-semibold mb-2">Mint</h3>
               <p className="text-gray-400 text-sm">Turn your art into an NFT on the blockchain</p>
             </div>
             <div className="text-center">
-              <div className="w-16 h-16 bg-green-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
+              <div className="w-16 h-16 bg-gray-600 rounded-full mx-auto mb-4 flex items-center justify-center text-2xl">
                 💎
               </div>
               <h3 className="font-semibold mb-2">Trade</h3>
@@ -188,7 +188,7 @@ export default function HomePage() {
           
           <Link 
             href="/mint-nft"
-            className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
+            className="inline-block bg-[#4b871c] hover:bg-[#4b871c]/90 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
           >
             Start Creating Now
           </Link>
@@ -221,7 +221,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {[1, 2, 3, 4].map((collection) => (
               <div key={collection} className="bg-gray-800 rounded-lg overflow-hidden hover:transform hover:scale-105 transition-all duration-300">
-                <div className="aspect-video bg-gradient-to-br from-pink-500 to-orange-500 relative">
+                <div className="aspect-video bg-gradient-to-br from-gray-600 to-gray-900 relative">
                   <div className="absolute inset-0 flex items-center justify-center text-white font-semibold">
                     Collection {collection}
                   </div>
@@ -229,7 +229,7 @@ export default function HomePage() {
                 <div className="p-4">
                   <h3 className="font-semibold mb-2">Trending Collection #{collection}</h3>
                   <p className="text-gray-400 text-sm mb-3">{collection * 100} items</p>
-                  <div className="text-blue-400 font-semibold">Floor: {collection}.{collection} ETH</div>
+                  <div className="text-primary font-semibold">Floor: {collection}.{collection} ETH</div>
                 </div>
               </div>
             ))}
@@ -255,7 +255,7 @@ export default function HomePage() {
               { step: 4, title: 'List & Sell', desc: 'Share your NFT with the world and start earning' }
             ].map((item) => (
               <div key={item.step} className="flex flex-col sm:flex-row items-start sm:items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                <div className="flex-shrink-0 w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center font-bold text-lg">
+                <div className="flex-shrink-0 w-12 h-12 bg-gray-800 rounded-full flex items-center justify-center font-bold text-lg">
                   {item.step}
                 </div>
                 <div className="flex-1">

@@ -4,7 +4,7 @@
 
 :root {
   --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
+  --background-start-rgb: 255, 255, 255;
   --background-end-rgb: 255, 255, 255;
 }
 
@@ -30,7 +30,7 @@ body {
 :root {
   --background: #ffffff;
   --foreground: #000000;
-  --primary: #0070f3;
+  --primary: #9747ff;
   --primary-foreground: #ffffff;
   --secondary: #f1f3f5;
   --secondary-foreground: #000000;
@@ -38,17 +38,17 @@ body {
   --muted-foreground: #64748b;
   --accent: #f1f3f5;
   --accent-foreground: #000000;
-  --destructive: #ef4444;
+  --destructive: #000000;
   --destructive-foreground: #ffffff;
   --border: #e2e8f0;
   --input: #e2e8f0;
-  --ring: #0070f3;
+  --ring: #9747ff;
 }
 
 .dark {
   --background: #000000;
   --foreground: #ffffff;
-  --primary: #0070f3;
+  --primary: #9747ff;
   --primary-foreground: #ffffff;
   --secondary: #1a1a1a;
   --secondary-foreground: #ffffff;
@@ -56,11 +56,11 @@ body {
   --muted-foreground: #94a3b8;
   --accent: #1a1a1a;
   --accent-foreground: #ffffff;
-  --destructive: #ef4444;
+  --destructive: #000000;
   --destructive-foreground: #ffffff;
   --border: #1a1a1a;
   --input: #1a1a1a;
-  --ring: #0070f3;
+  --ring: #9747ff;
 }
 
 /* Base styles */
@@ -195,7 +195,7 @@ body {
 }
 
 .neon-glow {
-  box-shadow: 0 0 8px #ff00ff, 0 0 16px #ff00ff;
+  box-shadow: 0 0 8px #9747ff, 0 0 16px #9747ff;
 }
 
 /* Smooth scrolling */
@@ -214,7 +214,7 @@ html {
 
 /* Custom text effects */
 .text-gradient {
-  background: linear-gradient(45deg, hsl(var(--secondary)), #ff00ff);
+  background: linear-gradient(45deg, hsl(var(--secondary)), #9747ff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
