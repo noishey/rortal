@@ -4,7 +4,6 @@ import { WagmiProvider, createConfig, http } from 'wagmi';
 import { polygonAmoy } from 'wagmi/chains';
 import { injected } from 'wagmi/connectors';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
 
 const config = createConfig({
   chains: [polygonAmoy],
@@ -24,9 +23,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <WagmiProvider config={config}>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          {children}
-        </ThemeProvider>
+        {children}
       </WagmiProvider>
     </QueryClientProvider>
   );
