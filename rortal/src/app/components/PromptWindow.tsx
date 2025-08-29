@@ -3,7 +3,7 @@
 // Import React hooks for state management and side effects
 import { useState, useRef, useEffect } from 'react';
 // Import Lucide React icons for UI elements
-import { XIcon, SendIcon, UserIcon, BotIcon } from 'lucide-react';
+import { X, Send, User, Bot } from 'lucide-react';
 
 // TypeScript interface defining the structure of a chat message
 interface Message {
@@ -105,10 +105,20 @@ export default function PromptWindow({ isOpen, onClose, onGenerate }: PromptWind
   return (
     // Modal overlay covering the entire screen
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      {/* Main modal container with ChatGPT-like styling */}
-      <div className="bg-white rounded-lg shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col">
+      {/* Main modal container with ChatGPT-like styling and custom positioning */}
+      <div 
+        className="bg-background border border-border rounded-lg shadow-2xl w-full max-w-4xl h-[80vh] flex flex-col"
+        style={{
+          position: 'absolute',
+          left: '19.63%',
+          right: '76.34%', 
+          top: '5.11%',
+          bottom: '94.59%',
+          filter: 'drop-shadow(0px 2.17545px 5.43863px rgba(0, 0, 0, 0.1))'
+        }}
+      >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200">
+        <div className="flex items-center justify-between p-4 border-b border-border">
           {/* Left side - AI assistant info */}
           <div className="flex items-center space-x-3">
             {/* AI avatar with gradient background */}
@@ -116,16 +126,16 @@ export default function PromptWindow({ isOpen, onClose, onGenerate }: PromptWind
               <Bot className="w-5 h-5 text-white" /> {/* Bot icon */}
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">AI Art Creator</h2> {/* Modal title */}
-              <p className="text-sm text-gray-500">Let's create something amazing together</p> {/* Subtitle */}
+              <h2 className="text-lg font-semibold text-foreground">AI Art Creator</h2> {/* Modal title */}
+              <p className="text-sm text-muted-foreground">Let's create something amazing together</p> {/* Subtitle */}
             </div>
           </div>
           {/* Right side - Close button */}
           <button
             onClick={onClose} // Call onClose when clicked
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors" // Hover effect styling
+            className="p-2 hover:bg-secondary rounded-full transition-colors" // Hover effect styling
           >
-            <X className="w-5 h-5 text-gray-500" /> {/* X icon for closing */}
+            <X className="w-5 h-5 text-muted-foreground" /> {/* X icon for closing */}
           </button>
         </div>
 

@@ -188,9 +188,9 @@ export default function HomePage() { // Main homepage component
           
           <Link 
             href="/mint-nft" // Navigate to minting page
-            className="inline-block bg-[#4b871c] hover:bg-[#4b871c]/90 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105" // CTA button with hover animation
+            className="inline-block bg-[#4b871c] hover:bg-[#4b871c]/90 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
           >
-            Start Creating Now {/* Call-to-action text */}
+            Start Creating Now
           </Link>
         </div>
       </section>
