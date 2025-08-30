@@ -7,6 +7,10 @@ module.exports = {
   ],
   theme: { // Theme customization
     extend: { // Extend default Tailwind theme
+      fontFamily: {
+        sans: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', 'monospace'],
+        mono: ['JetBrains Mono', 'Fira Code', 'Monaco', 'Consolas', 'monospace'],
+      },
       colors: { // Custom color palette using CSS variables
         background: 'hsl(var(--background))', // Main background color
         foreground: 'hsl(var(--foreground))', // Main text color

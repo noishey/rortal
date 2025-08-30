@@ -1,9 +1,9 @@
 import type { Metadata } from 'next' // Import Next.js metadata type
-import { Inter } from 'next/font/google' // Import Inter font from Google Fonts
+import { JetBrains_Mono } from 'next/font/google' // Import JetBrains Mono font from Google Fonts
 import './styles/globals.css' // Import global CSS styles
 import { Providers } from './providers' // Import providers wrapper component
 
-const inter = Inter({ subsets: ['latin'] }) // Configure Inter font with Latin subset
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'] }) // Configure JetBrains Mono font with Latin subset
 
 export const metadata: Metadata = { // Define page metadata for SEO
   title: 'Rortal', // Page title shown in browser tab
@@ -17,7 +17,7 @@ export default function RootLayout({ // Root layout component for entire app
 }) {
   return (
     <html lang="en" suppressHydrationWarning> {/* HTML root with English language and hydration warning suppression */}
-      <body className={inter.className}> {/* Body with Inter font class */}
+      <body className={jetbrainsMono.className}> {/* Body with JetBrains Mono font class */}
         <Providers> {/* Wrap app with providers for Web3, React Query, etc. */}
           {children} {/* Render page content */}
         </Providers>

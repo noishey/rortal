@@ -14,7 +14,13 @@ export default function HomePage() { // Main homepage component
       <section className="relative min-h-screen flex flex-col"> {/* Hero section taking full viewport height */}
         {/* Mobile-First Header with Hamburger */}
         <header className="flex justify-between items-center p-4 sm:p-6 relative z-50"> {/* Header with responsive padding and high z-index */}
-          <h1 className="text-xl font-bold sm:text-2xl">Rortal</h1> {/* Site logo/title with responsive sizing */}
+          <Image 
+            src="/logo.png" 
+            alt="Logo" 
+            width={200} 
+            height={67} 
+            className="h-12 sm:h-16 lg:h-20 w-auto" 
+          /> {/* Site logo image with responsive sizing */}
           
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center space-x-8"> {/* Desktop navigation hidden on mobile */}
@@ -69,7 +75,7 @@ export default function HomePage() { // Main homepage component
             </p>
             <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 sm:justify-center"> {/* CTA button container */}
               <Link 
-                href="/mint-nft" // Navigate to NFT minting page
+                href="/generate" // Navigate to generate page
                 className="block w-full bg-[#4b871c] hover:bg-[#4b871c]/90 active:bg-[#4b871c]/80 text-white font-semibold py-4 px-8 rounded-lg transition-colors text-center sm:w-auto" // Primary CTA button styling
               >
                 Start Creating {/* Primary call-to-action text */}
@@ -187,7 +193,7 @@ export default function HomePage() { // Main homepage component
           </div>
           
           <Link 
-            href="/mint-nft" // Navigate to minting page
+            href="/generate" // Navigate to generate page
             className="inline-block bg-[#4b871c] hover:bg-[#4b871c]/90 text-white font-semibold py-4 px-8 rounded-lg transition-all transform hover:scale-105"
           >
             Start Creating Now
@@ -207,7 +213,7 @@ export default function HomePage() { // Main homepage component
           
           {/* Category Filters */}
           <div className="flex flex-wrap justify-center gap-3 mb-12"> {/* Filter buttons container */}
-            {['All', 'Art', 'Photography', 'Music', 'Gaming', 'Sports'].map((category) => ( // Category filter buttons
+            {['All', 'Art', 'Photography', 'Music'].map((category) => ( // Category filter buttons
               <button 
                 key={category} // Unique key for each button
                 className="px-4 py-2 bg-gray-800 hover:bg-blue-600 rounded-full text-sm transition-colors" // Filter button styling
