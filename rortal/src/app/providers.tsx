@@ -1,30 +1,37 @@
-'use client'; // Enable client-side rendering for this component
+'use client';
 
-import { WagmiProvider, createConfig, http } from 'wagmi'; // Import Wagmi for Web3 functionality
-import { polygonAmoy } from 'wagmi/chains'; // Import Polygon Amoy testnet configuration
-import { injected } from 'wagmi/connectors'; // Import injected wallet connector (MetaMask)
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // Import React Query for data fetching
+import { WagmiProvider, createConfig, http } from 'wagmi';
+import { polygonAmoy } from 'wagmi/chains';
+import { injected, coinbaseWallet } from 'wagmi/connectors';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { SessionProvider } from 'next-auth/react';
 
-const config = createConfig({ // Create Wagmi configuration for Web3 connections
-  chains: [polygonAmoy], // Support Polygon Amoy testnet only
-  transports: { // Define RPC transports for each chain
-    [polygonAmoy.id]: http(), // Use HTTP transport for Polygon Amoy
+const config = createConfig({
+  chains: [polygonAmoy],
+  transports: {
+    [polygonAmoy.id]: http(),
   },
-  connectors: [ // Define wallet connectors
-    injected({ // Injected wallet connector configuration
-      target: 'metaMask', // Target MetaMask specifically
+  connectors: [
+    injected({
+      target: 'metaMask',
+    }),
+    coinbaseWallet({
+      appName: 'Rortal',
+      appLogoUrl: '/logo.png',
     }),
   ],
 });
 
-const queryClient = new QueryClient(); // Create React Query client for caching
+const queryClient = new QueryClient();
 
-export function Providers({ children }: { children: React.ReactNode }) { // Providers wrapper component
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <QueryClientProvider client={queryClient}> {/* Provide React Query client */}
-      <WagmiProvider config={config}> {/* Provide Wagmi Web3 configuration */}
-        {children} {/* Render child components */}
-      </WagmiProvider>
-    </QueryClientProvider>
+    <SessionProvider>
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          {children}
+        </WagmiProvider>
+      </QueryClientProvider>
+    </SessionProvider>
   );
 }
