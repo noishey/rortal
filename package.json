@@ -1,6 +1,8 @@
 {
   "dependencies": {
-    "next-themes": "^0.4.6"
+    "next-themes": "^0.4.6",
+    "pino-pretty": "^13.1.1",
+    "web3.storage": "^4.5.5"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.3",

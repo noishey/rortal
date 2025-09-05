@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import axios from 'axios';
+import PromptWindow from './PromptWindow';
 
 // Base prompt for image generation
 const BASE_PROMPT = "abstract digital art with";
@@ -53,6 +54,10 @@ const uploadToPinata = async (file: File): Promise<string> => {
 };
 
 export default function StableDiffusion({ onImageGenerated }: StableDiffusionProps) {
+  // Remove slider states - replace with prompt states
+  const [isPromptOpen, setIsPromptOpen] = useState(false);
+  const [currentPrompt, setCurrentPrompt] = useState<string>('');
+  
   // Parameter states
   const [noise, setNoise] = useState(5);
   const [swirl, setSwirl] = useState(5);
@@ -68,20 +73,15 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
 
   // Function to handle the image generation process
   // Add better error logging in handleGenerate function
-  const handleGenerate = async () => {
+  const handleGenerate = async (prompt?: string) => {
     setIsGenerating(true);
     setError(null);
     setIpfsUrl(null);
     setImageBlob(null);
   
     try {
-      // Build prompt based on parameter values
-      const promptParts = [];
-      if (noise > 0) promptParts.push(`noise level ${noise}`);
-      if (swirl > 0) promptParts.push(`swirl intensity ${swirl}`);
-      if (energy > 0) promptParts.push(`energy ${energy}`);
-      
-      const fullPrompt = `${BASE_PROMPT} ${promptParts.join(', ')}`;
+      // Use the prompt directly instead of building from slider values
+      const fullPrompt = prompt || currentPrompt || "abstract digital art, highly detailed, vibrant colors";
 
       const response = await fetch('/api/generate', {
         method: 'POST',
@@ -145,69 +145,45 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
 
   return (
     <div className="space-y-6">
-      {/* Parameter Controls */}
+      {/* Replace Parameter Controls with Chat Prompt Button */}
       <div className="space-y-4">
-        {/* Noise Control */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Noise: {noise}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={noise}
-            onChange={(e) => setNoise(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-
-        {/* Swirl Control */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Swirl: {swirl}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={swirl}
-            onChange={(e) => setSwirl(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
-
-        {/* Energy Control */}
-        <div>
-          <label className="block text-sm font-medium mb-2">
-            Energy: {energy}
-          </label>
-          <input
-            type="range"
-            min="0"
-            max="10"
-            value={energy}
-            onChange={(e) => setEnergy(parseInt(e.target.value))}
-            className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
-          />
-        </div>
+        <button
+          onClick={() => setIsPromptOpen(true)}
+          className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-medium py-4 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-3 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
+        >
+          <span className="text-2xl">🎨</span>
+          <div className="text-left">
+            <div className="font-semibold">Describe Your Art</div>
+            <div className="text-sm opacity-90">Chat with AI to create the perfect prompt</div>
+          </div>
+        </button>
+        
+        {/* Show current prompt if exists */}
+        {currentPrompt && (
+          <div className="p-4 bg-gray-50 rounded-lg border-l-4 border-purple-500">
+            <p className="text-sm text-gray-600 mb-1">Current Prompt:</p>
+            <p className="text-gray-800 font-medium">{currentPrompt}</p>
+          </div>
+        )}
       </div>
 
-      {/* Generate Button */}
-      <button
-        onClick={handleGenerate}
-        disabled={isGenerating}
-        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
-      >
-        {isGenerating ? (
-          <>
-            <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
-            Generating...
-          </>
-        ) : (
-          'Generate Art'
-        )}
-      </button>
+      {/* Generate Button - only show if we have a prompt */}
+      {currentPrompt && (
+        <button
+          onClick={() => handleGenerate()}
+          disabled={isGenerating}
+          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white font-medium py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+        >
+          {isGenerating ? (
+            <>
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+              Generating...
+            </>
+          ) : (
+            'Generate Art'
+          )}
+        </button>
+      )}
 
       {/* Image Preview */}
       {generatedImage && (
@@ -256,6 +232,17 @@ export default function StableDiffusion({ onImageGenerated }: StableDiffusionPro
           <p className="text-sm text-red-700">{error}</p>
         </div>
       )}
+      
+      {/* Chat Prompt Window */}
+      <PromptWindow
+        isOpen={isPromptOpen}
+        onClose={() => setIsPromptOpen(false)}
+        onGenerate={(prompt) => {
+          setCurrentPrompt(prompt);
+          setIsPromptOpen(false);
+          handleGenerate(prompt);
+        }}
+      />
     </div>
   );
 }
